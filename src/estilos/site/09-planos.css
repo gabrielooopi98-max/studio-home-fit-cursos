@@ -1,19 +1,27 @@
 /* =========================================================
-   Plano: um card de oferta (incluso à esquerda, preço em painel preto à direita)
+   Plano: card branco com o painel de preço preto encaixado dentro.
+   Computador: nome e inclusos à esquerda, preço à direita.
+   Celular: nome, depois o preço, depois os inclusos.
    ========================================================= */
 .offer {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'head side'
+    'body side';
   max-width: 1080px;
   margin: 0 auto;
-  overflow: hidden;
+  padding: 12px;
   border: 1px solid #e4e6ea;
-  border-radius: 24px;
+  border-radius: 28px;
   background: #ffffff;
-  box-shadow: 0 40px 80px -40px rgb(10 10 11 / 0.35);
+  box-shadow:
+    0 1px 0 rgb(10 10 11 / 0.04),
+    0 40px 80px -40px rgb(10 10 11 / 0.35);
 }
 
-/* as duas colunas encolhem junto com o card, mesmo com textos sem espaço */
+/* as áreas encolhem junto com o card, mesmo com textos sem espaço */
 .offer > * {
   min-width: 0;
 }
@@ -23,8 +31,10 @@
   overflow-wrap: anywhere;
 }
 
-.offer__main {
-  padding: clamp(28px, 4vw, 48px);
+/* ---------- Nome e descrição ---------- */
+.offer__head {
+  grid-area: head;
+  padding: clamp(24px, 3.4vw, 40px) clamp(18px, 3.4vw, 40px) 0;
 }
 
 .offer__tag {
@@ -45,27 +55,33 @@
 .offer__name {
   margin: 16px 0 10px;
   font-family: 'Montserrat', sans-serif;
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(1.7rem, 3.2vw, 2.6rem);
   font-weight: 900;
-  line-height: 1.05;
+  line-height: 1.02;
   text-transform: uppercase;
   hyphens: auto;
   text-wrap: balance;
 }
 
 .offer__desc {
-  max-width: 460px;
+  max-width: 470px;
   color: #6b7079;
   font-size: 0.98rem;
   line-height: 1.6;
   text-wrap: pretty;
 }
 
+/* ---------- O que está incluso ---------- */
+.offer__body {
+  grid-area: body;
+  padding: 0 clamp(18px, 3.4vw, 40px) clamp(22px, 3vw, 32px);
+}
+
 .offer__label {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 32px 0 16px;
+  gap: 10px;
+  margin: 30px 0 14px;
   color: #0a0a0b;
   font-size: 0.74rem;
   font-weight: 800;
@@ -81,83 +97,123 @@
   background: #e4e6ea;
 }
 
+.offer__count {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #0a0a0b;
+  color: #ffffff;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+}
+
+/* itens do combo em blocos claros */
 .offer__features {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 24px;
+  gap: 10px;
 }
 
 .offer__features li {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  color: #33363d;
-  font-size: 0.93rem;
-  font-weight: 600;
-  line-height: 1.4;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #eceef2;
+  border-radius: 14px;
+  background: #f6f7fa;
+  color: #1b1d21;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.35;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+/* quantidade ímpar: o último item ocupa a linha toda (sem buraco na grade) */
+.offer__features li:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 
 .offer__check {
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: #1f5bff;
   color: #ffffff;
+  box-shadow: 0 4px 10px -4px rgb(31 91 255 / 0.7);
 }
 
+/* cursos numerados, em duas colunas */
 .offer__courses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 28px;
 }
 
 .offer__courses li {
-  max-width: 100%;
-  padding: 7px 12px;
-  border: 1px solid #e4e6ea;
-  border-radius: 8px;
-  background: #f8f9fa;
-  color: #50545c;
-  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #eef0f3;
+  color: #33363d;
+  font-size: 0.9rem;
   font-weight: 700;
+  line-height: 1.3;
+  transition: color 0.2s ease;
 }
 
-/* Painel de preço: preto com os rabiscos claros, como as seções escuras */
+.offer__num {
+  flex-shrink: 0;
+  min-width: 22px;
+  color: #1f5bff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .offer__features li:hover {
+    border-color: #cfd9fb;
+    background: #f0f4ff;
+  }
+
+  .offer__courses li:hover {
+    color: #1f5bff;
+  }
+}
+
+/* ---------- Painel de preço (preto, encaixado no card) ---------- */
 .offer__side {
+  grid-area: side;
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 40px clamp(22px, 3.6vw, 44px) 48px;
+  overflow: hidden;
+  padding: clamp(24px, 3vw, 36px);
+  border-radius: 20px;
   background: url('../../imagens/tinta-textura-clara.svg') center / 1100px 690px repeat #0a0a0b;
   color: #ffffff;
 }
 
-/*
-  Logo no topo do painel; as margens automáticas (logo e garantia) mantêm o preço
-  centralizado no espaço que sobra abaixo dela
-*/
+.offer__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .offer__logo {
-  align-self: center;
   width: auto;
-  height: 44px;
-  margin-bottom: auto;
-}
-
-.offer__from {
-  margin-top: 36px;
-}
-
-.offer__guarantee {
-  margin-bottom: auto;
+  height: 34px;
 }
 
 .offer__off {
-  position: absolute;
-  top: 48px;
-  right: 40px;
+  flex-shrink: 0;
   padding: 6px 12px;
   background: #1f5bff;
   color: #ffffff;
@@ -168,44 +224,101 @@
   box-shadow: 3px 3px 0 #ffffff;
 }
 
+.offer__once {
+  flex-shrink: 0;
+  padding: 6px 11px;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  color: #c9ccd2;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.offer__pricebox {
+  margin: 30px 0 22px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.12);
+}
+
 .offer__from {
+  margin-bottom: 4px;
   color: #9a9fa8;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 
 .offer__from s {
   color: #9a9fa8;
 }
 
+/* "R$" e centavos pequenos no alto, reais grandes */
 .offer__price {
-  margin: 4px 0 6px;
+  display: flex;
+  align-items: flex-start;
   font-family: 'Montserrat', sans-serif;
-  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-size: clamp(3rem, 6vw, 4.6rem);
   font-weight: 900;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   white-space: nowrap;
 }
 
-.offer__note {
+.offer__cur {
+  margin: 0.2em 0.18em 0 0;
   color: #c9ccd2;
-  font-size: 0.95rem;
+  font-size: 0.32em;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.offer__cents {
+  margin-top: 0.14em;
+  font-size: 0.4em;
+  letter-spacing: 0;
+}
+
+.offer__note {
+  margin-top: 10px;
+  color: #c9ccd2;
+  font-size: 0.92rem;
   font-weight: 600;
 }
 
 .offer__saving {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
   max-width: 100%;
   gap: 8px;
-  margin: 18px 0 28px;
+  margin-top: 14px;
   padding: 7px 12px;
   border-radius: 8px;
   background: rgb(31 91 255 / 0.18);
   color: #8fb0ff;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.offer__perks {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+
+.offer__perks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #dfe2e7;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.offer__perks svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #6f97ff;
 }
 
 .offer__side .btn--added {
@@ -216,31 +329,12 @@
 
 /* bloco de texto: o cadeado acompanha a primeira palavra quando a linha quebra */
 .offer__secure {
-  text-align: center;
   margin-top: 14px;
+  /* o espaço que sobrar no painel fica aqui: a garantia desce até o pé */
+  margin-bottom: auto;
   color: #9a9fa8;
   font-size: 0.8rem;
-}
-
-.offer__guarantee {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgb(255 255 255 / 0.12);
-}
-
-.offer__seal {
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: #1f5bff;
-  color: #ffffff;
-  box-shadow: 0 0 0 6px rgb(31 91 255 / 0.2);
+  text-align: center;
 }
 
 .offer__secure svg {
@@ -249,20 +343,43 @@
   vertical-align: -2px;
 }
 
+.offer__guarantee {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.offer__seal {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1f5bff;
+  color: #ffffff;
+  box-shadow: 0 0 0 5px rgb(31 91 255 / 0.22);
+}
+
 .offer__guarantee > div {
   min-width: 0;
 }
 
 .offer__guarantee div strong {
   display: block;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
 }
 
 .offer__guarantee div span {
   display: block;
   margin-top: 2px;
   color: #9a9fa8;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
@@ -291,46 +408,62 @@
   color: #6b7079;
 }
 
+/* Tablet e celular: uma coluna, com o preço logo depois do nome */
 @media (max-width: 980px) {
   .offer {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas:
+      'head'
+      'side'
+      'body';
     max-width: 620px;
+    padding: 10px;
+    border-radius: 24px;
+  }
+
+  .offer__head {
+    padding: 26px 18px 24px;
+  }
+
+  .offer__body {
+    padding: 4px 18px 18px;
   }
 }
 
 @media (max-width: 640px) {
-  .offer__main {
-    padding: 32px 22px;
-  }
-
-  .offer__features {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .offer__courses li {
-    font-size: 0.72rem;
+  .offer__name {
+    margin-top: 14px;
   }
 
   .offer__side {
-    padding: 32px 22px;
+    padding: 24px 20px;
+    border-radius: 18px;
   }
 
   .offer__logo {
-    height: 38px;
+    height: 30px;
   }
 
-  .offer__from {
-    margin-top: 28px;
-  }
-
-  .offer__off {
-    position: static;
-    align-self: flex-start;
-    margin: 24px 0 -16px 4px;
+  .offer__pricebox {
+    margin-top: 24px;
   }
 
   .offer__price {
-    font-size: clamp(2.2rem, 11vw, 3rem);
+    font-size: clamp(2.8rem, 15vw, 3.6rem);
+  }
+
+  .offer__features,
+  .offer__courses {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .offer__features li {
+    padding: 11px 12px;
+  }
+
+  .offer__courses li {
+    padding: 10px 0;
+    font-size: 0.86rem;
   }
 }

@@ -72,8 +72,8 @@ export default function Resumo() {
         <div className="xbanner xbanner--warn">
           <Icone name="alert" size={18} />
           <span>
-            <strong>Modo de teste ligado:</strong> compras são registradas sem cobrança. Desligue em Configurações antes de
-            vender de verdade.
+            <strong>Modo de teste ligado:</strong> administradores compram sem cobrança e alunos não conseguem finalizar
+            compras. Desligue em Configurações antes de vender de verdade.
           </span>
           <a href="#/admin/configuracoes">Configurações</a>
         </div>

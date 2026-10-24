@@ -26,6 +26,23 @@ const must = async (promise) => {
   return data
 }
 
+// Edge Function do servidor: devolve os dados ou lança a mensagem de erro que a função mandou
+const invoke = async (name, body) => {
+  const { data, error } = await (await client()).functions.invoke(name, { body })
+  if (error) {
+    let message = error.message
+    if (typeof error.context?.json === 'function') {
+      try {
+        message = (await error.context.json()).error ?? message
+      } catch {
+        // resposta sem JSON: fica a mensagem padrão
+      }
+    }
+    fail(new Error(message))
+  }
+  return data
+}
+
 const fromSettings = (s) => ({
   combo_title: s.comboTitle,
   combo_description: s.comboDescription,
@@ -39,6 +56,8 @@ const fromSettings = (s) => ({
   instagram: s.instagram,
   youtube: s.youtube,
   contact_email: s.contactEmail,
+  // só manda as colunas da liberação gradual se o banco já tiver (rodou o 0005)
+  ...(s.dripSupported ? { drip_enabled: s.dripEnabled, drip_days: s.dripDays } : {}),
 })
 
 const fromCourse = (c) => ({
@@ -56,8 +75,8 @@ const fromCourse = (c) => ({
   position: c.position,
 })
 
-// link temporário dos vídeos enviados como arquivo (6 horas)
-const SIGNED_TTL = 6 * 60 * 60
+// link temporário dos vídeos enviados como arquivo (2 horas; abrir a aula de novo gera outro)
+const SIGNED_TTL = 2 * 60 * 60
 
 // texto de busca seguro para os filtros do PostgREST (sem vírgulas/parênteses/curingas)
 const cleanSearch = (s) => String(s ?? '').replace(/[,()%*\\]/g, ' ').trim().slice(0, 60)
@@ -192,22 +211,36 @@ const supabaseBackend = {
       await must((await client()).from('lesson_progress').delete().eq('user_id', userId).eq('lesson_id', lessonId))
     }
   },
-  async getLessonVideos(courseId) {
+  /*
+    Abre uma aula: o banco confere se ela já está liberada para o aluno, registra a abertura
+    e só então entrega o vídeo. Arquivo enviado: o link temporário só é gerado depois desse
+    registro (regra do Storage). Devolve { locked, unlockAt } ou { locked: false, url }.
+  */
+  async openLesson(lessonId) {
     const sb = await client()
-    const rows = await must(sb.from('lesson_media').select('lesson_id, video_url').eq('course_id', courseId))
-    // arquivos enviados: o banco só gera o link temporário para quem pode assistir
-    const paths = rows.map((r) => storedPath(r.video_url)).filter(Boolean)
-    const signed = new Map()
-    if (paths.length) {
-      const { data } = await sb.storage.from(VIDEO_BUCKET).createSignedUrls(paths, SIGNED_TTL)
-      for (const s of data ?? []) if (s.signedUrl && !s.error) signed.set(s.path, s.signedUrl)
+    const { data, error } = await sb.rpc('open_lesson', { p_lesson_id: lessonId })
+    let video
+    if (error) {
+      // banco ainda sem o 0005_protecao_reembolso.sql: lê o link direto (regras antigas)
+      if (error.code !== 'PGRST202') fail(error)
+      video = (await must(sb.from('lesson_media').select('video_url').eq('lesson_id', lessonId).maybeSingle()))?.video_url ?? ''
+    } else {
+      if (data.locked) return { locked: true, unlockAt: data.unlock_at }
+      video = data.video_url
     }
-    return Object.fromEntries(
-      rows.map((r) => {
-        const path = storedPath(r.video_url)
-        return [r.lesson_id, path ? (signed.get(path) ?? '') : r.video_url]
-      }),
-    )
+    const path = storedPath(video)
+    if (!path) return { locked: false, url: video }
+    const signed = await must(sb.storage.from(VIDEO_BUCKET).createSignedUrl(path, SIGNED_TTL))
+    return { locked: false, url: signed.signedUrl }
+  },
+  // Quando cada módulo do curso libera para o aluno logado: { idDoMódulo: data }
+  async getCourseUnlocks(courseId) {
+    const { data, error } = await (await client()).rpc('my_course_unlocks', { p_course_id: courseId })
+    if (error) {
+      if (error.code === 'PGRST202') return {}
+      fail(error)
+    }
+    return Object.fromEntries(data.filter((r) => r.unlock_at).map((r) => [r.module_id, r.unlock_at]))
   },
 
   // ----- Compra -----
@@ -223,26 +256,17 @@ const supabaseBackend = {
       )
       return { mode: 'paid', orderId: order.id }
     }
-    const { data, error } = await (await client()).functions.invoke('criar-pagamento', {
-      body: { courseIds: combo ? [] : courseIds, combo: !!combo, coupon: coupon || null, payer },
-    })
-    if (error) {
-      let message = error.message
-      if (typeof error.context?.json === 'function') {
-        try {
-          message = (await error.context.json()).error ?? message
-        } catch {
-          // resposta sem JSON: fica a mensagem padrão
-        }
-      }
-      fail(new Error(message))
-    }
+    const data = await invoke('criar-pagamento', { courseIds: combo ? [] : courseIds, combo: !!combo, coupon: coupon || null, payer })
     if (data?.free) return { mode: 'paid', orderId: data.orderId }
     if (!data?.url) fail(new Error('Não foi possível iniciar o pagamento. Tente de novo.'))
     return { mode: 'redirect', url: data.url, orderId: data.orderId }
   },
   async getOrder(orderId) {
     return must((await client()).from('orders').select('*, order_items(*)').eq('id', orderId).maybeSingle())
+  },
+  // Pede ao servidor para conferir o pedido direto no Mercado Pago (o navegador nunca decide se foi pago)
+  async verifyOrder(orderId) {
+    return (await invoke('conferir-pagamento', { orderId }))?.status ?? null
   },
   async getMyOrders(userId) {
     return must(
@@ -379,6 +403,22 @@ const supabaseBackend = {
     },
     async setOrderStatus(id, status) {
       return must((await client()).rpc('admin_set_order_status', { p_order_id: id, p_status: status }))
+    },
+    // confere no Mercado Pago os pedidos pendentes dos últimos 7 dias e corrige pagos sem acesso
+    async reconcilePayments() {
+      return invoke('conferir-pagamento', { todos: true })
+    },
+    async paymentIssues() {
+      return must((await client()).rpc('admin_payment_issues'))
+    },
+    // quantas aulas o aluno abriu nos cursos deste pedido e quantos reembolsos ele já teve
+    async orderConsumption(orderId) {
+      return must((await client()).rpc('admin_order_consumption', { p_order_id: orderId }))
+    },
+    async refundCounts() {
+      const { data, error } = await (await client()).rpc('admin_refund_counts')
+      if (error) return {} // banco ainda sem o 0005: sem a contagem
+      return Object.fromEntries(data.map((r) => [r.user_id, Number(r.refunds)]))
     },
     async listStudents(search) {
       return must((await client()).rpc('admin_students', { p_search: cleanSearch(search) || null }))

@@ -20,6 +20,7 @@ Outros comandos:
 | `npm run build` | Gera o site pronto para publicar, na pasta `dist/` |
 | `npm run preview` | Abre o site gerado pelo build, para conferir antes de publicar |
 | `npm run lint` | Procura erros comuns no código |
+| `npm test` | Testes de segurança do pagamento e do banco (banco PostgreSQL de teste + Mercado Pago simulado) |
 
 As chaves do Supabase ficam no arquivo `.env` (modelo em `.env.example`). Sem elas, o site abre em **modo demonstração**: sem login nem painel, com as compras salvas só no navegador. O passo a passo do banco, do login e dos pagamentos está no [SUPABASE.md](SUPABASE.md).
 
@@ -34,6 +35,7 @@ home-fit-cursos/
 ├── publico/              arquivos copiados como estão: ícones, manifest, página 404
 ├── originais/            arquivos de imagem originais (não entram no site)
 ├── supabase/             tudo o que roda no servidor (ver abaixo)
+├── testes/               testes automáticos (npm test); apoio/ tem o banco de teste e o Mercado Pago simulado
 └── src/                  código do site
     ├── main.jsx          ponto de entrada (liga o React na página)
     ├── Site.jsx          o site inteiro: páginas pelo endereço (#/...), carrinho e página inicial
@@ -97,10 +99,16 @@ home-fit-cursos/
 | `migrations/0001_estrutura.sql` | Tabelas, regras de segurança (RLS), funções e permissões |
 | `migrations/0002_cursos_iniciais.sql` | Os 8 cursos iniciais, com módulos e aulas |
 | `migrations/0003_videos.sql` | Local privado para os vídeos enviados pelo painel |
+| `migrations/0004_pagamentos_seguros.sql` | Regras de pagamento (valor, moeda, estornos), registro de eventos e conferência |
+| `migrations/0005_protecao_reembolso.sql` | Liberação gradual das aulas e registro das aulas abertas (contra "assistir tudo e pedir reembolso") |
 | `functions/criar-pagamento/` | Cria o pedido e abre o pagamento no Mercado Pago |
 | `functions/webhook-mercadopago/` | Recebe o aviso do Mercado Pago e libera (ou remove) os cursos |
-| `functions/_compartilhado/` | Código usado pelas duas funções |
+| `functions/conferir-pagamento/` | Consulta o Mercado Pago na volta do aluno, no painel e na rotina agendada |
+| `functions/_compartilhado/` | `pagamentos.js` e `mercadopago.js` (as regras, testadas em `testes/`) e `servicos.js` (ligação com o Supabase e o Mercado Pago) |
 | `config.toml` | Configuração das funções |
+
+As funções são em JavaScript e rodam no Deno (servidor do Supabase). As regras ficam separadas da ligação com o
+Supabase justamente para os testes rodarem as mesmas regras no Node.
 
 ## Onde mexer para...
 

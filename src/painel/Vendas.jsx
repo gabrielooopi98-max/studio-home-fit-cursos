@@ -26,7 +26,7 @@ const ACTIONS = {
   refunded: {
     label: 'Estornar e remover acesso',
     title: 'Estornar este pedido?',
-    text: 'O aluno perde o acesso aos cursos deste pedido. Importante: o dinheiro é devolvido no painel do Mercado Pago (aqui só registramos o estorno e tiramos o acesso).',
+    text: 'O aluno perde o acesso aos cursos deste pedido. Importante: o dinheiro é devolvido no painel do Mercado Pago (aqui só registramos o estorno e tiramos o acesso). Pedido de desistência feito em até 7 dias da compra deve ser aceito (Código de Defesa do Consumidor, art. 49).',
     tone: 'danger',
   },
   cancelled: {
@@ -35,6 +35,107 @@ const ACTIONS = {
     text: 'O pedido fica como cancelado e nenhum curso é liberado.',
     tone: 'danger',
   },
+}
+
+// O que o registro de pagamentos (payment_events) aponta, em palavras
+const ALERTS = {
+  'alerta:pagamento_em_dobro': 'Pago duas vezes: devolva um dos pagamentos no Mercado Pago',
+  'alerta:estorno_de_outro_pagamento': 'Estorno de um pagamento extra (o acesso continua)',
+  'alerta:estorno_com_outro_pagamento_valido': 'Um pagamento foi estornado, mas outro do mesmo pedido continua valendo',
+  'recusado:valor': 'Valor pago diferente do total do pedido (nada foi liberado)',
+  'recusado:moeda': 'Pagamento em outra moeda (nada foi liberado)',
+  'recusado:pedido_inexistente': 'Pagamento de um pedido que não existe',
+  'recusado:pagamento_de_outro_pedido': 'Pagamento que já tinha liberado outro pedido',
+}
+
+// Resultados da conferência que mudaram algo no pedido
+const CHANGED = ['liberado', 'acesso_removido', 'failed', 'cancelled']
+
+function PaymentIssues({ issues }) {
+  if (!issues) return null
+  const parts = [
+    issues.paid_without_access.length > 0 && `${int(issues.paid_without_access.length)} pedido(s) pago(s) sem o acesso liberado`,
+    issues.access_without_payment.length > 0 && `${int(issues.access_without_payment.length)} acesso(s) de pedido que não está pago`,
+    Number(issues.old_pending) > 0 && `${int(issues.old_pending)} pedido(s) pendente(s) há mais de 3 dias`,
+    issues.alerts.length > 0 && `${int(issues.alerts.length)} alerta(s) do Mercado Pago nos últimos 30 dias`,
+  ].filter(Boolean)
+  if (!parts.length) return null
+
+  return (
+    <div className="xbanner xbanner--warn">
+      <Icone name="alert" size={18} />
+      <span>
+        <strong>Pagamentos para conferir:</strong> {parts.join('; ')}. Clique em <em>Conferir pagamentos</em> para consultar
+        o Mercado Pago e corrigir acessos.
+        {issues.alerts.length > 0 && (
+          <details>
+            <summary>Ver alertas</summary>
+            <ul>
+              {issues.alerts.map((a, i) => (
+                <li key={i}>
+                  {formatDate(a.created_at)}: {a.order_id ? `pedido #${shortId(a.order_id)}, ` : ''}
+                  {ALERTS[a.result] ?? a.result}
+                  {a.payment_id ? ` (pagamento ${a.payment_id})` : ''}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </span>
+    </div>
+  )
+}
+
+// Quanto o aluno usou dos cursos deste pedido: ajuda a decidir um pedido de reembolso
+// e serve de prova numa contestação no Mercado Pago
+function OrderConsumption({ order }) {
+  const c = useAsync(() => backend.admin.orderConsumption(order.id), [order.id])
+  if (c.error) return null
+  if (!c.data) return <p className="xfield__hint">Carregando o uso dos cursos…</p>
+  const d = c.data
+  const pct = d.lessons_total ? Math.round((d.lessons_opened / d.lessons_total) * 100) : 0
+  const paidAt = Date.parse(order.paid_at ?? order.created_at)
+  const fastBinge = pct >= 50 && d.last_view && Date.parse(d.last_view) - paidAt < 7 * 864e5
+
+  return (
+    <>
+      <h3 className="detail__title">Uso dos cursos</h3>
+      <dl className="detail__list">
+        <div>
+          <dt>Aulas abertas</dt>
+          <dd>
+            {int(d.lessons_opened)} de {int(d.lessons_total)} ({pct}%)
+            <span>{int(d.lessons_done)} marcadas como concluídas</span>
+          </dd>
+        </div>
+        {d.first_view && (
+          <div>
+            <dt>Primeira e última aula</dt>
+            <dd>
+              {formatDate(d.first_view)}
+              <span>última: {formatDate(d.last_view)}</span>
+            </dd>
+          </div>
+        )}
+        <div>
+          <dt>Reembolsos deste aluno</dt>
+          <dd>{int(d.refunds)}</dd>
+        </div>
+      </dl>
+      {fastBinge && (
+        <p className="xwarn">
+          <Icone name="alert" size={16} />
+          <span>Abriu metade ou mais das aulas em menos de 7 dias depois de pagar.</span>
+        </p>
+      )}
+      {d.refunds_with_access > 0 && (
+        <p className="xwarn">
+          <Icone name="alert" size={16} />
+          <span>Este aluno já pediu reembolso de outro pedido depois de abrir metade ou mais das aulas.</span>
+        </p>
+      )}
+    </>
+  )
 }
 
 export default function Vendas() {
@@ -55,6 +156,31 @@ export default function Vendas() {
   const orders = list.data ?? []
   const paid = orders.filter((o) => o.status === 'paid')
   const revenue = paid.reduce((s, o) => s + Number(o.total), 0)
+  const issues = useAsync(() => backend.admin.paymentIssues(), [])
+  const [checking, setChecking] = useState(false)
+
+  const reconcile = async () => {
+    setChecking(true)
+    try {
+      const r = await backend.admin.reconcilePayments()
+      const changed = Object.entries(r.results ?? {})
+        .filter(([k]) => CHANGED.includes(k))
+        .reduce((s, [, n]) => s + n, 0)
+      notify(
+        r.checked || r.repaired
+          ? `${int(r.checked)} pedido(s) conferido(s) no Mercado Pago, ${int(changed)} atualizado(s)` +
+              (r.repaired ? `, ${int(r.repaired)} acesso(s) corrigido(s).` : '.')
+          : 'Nenhum pedido pendente para conferir.',
+      )
+      list.reload()
+      issues.reload()
+      refreshSite()
+    } catch (e) {
+      notify(e.message, 'error')
+    } finally {
+      setChecking(false)
+    }
+  }
 
   const runAction = async () => {
     setBusy(true)
@@ -97,11 +223,18 @@ export default function Vendas() {
         title="Vendas"
         subtitle="Todos os pedidos, com filtro, detalhes e ações."
         actions={
-          <button type="button" className="btn btn--outline" onClick={exportCsv} disabled={!orders.length}>
-            <Icone name="download" size={17} /> Exportar planilha
-          </button>
+          <>
+            <button type="button" className="btn btn--outline" onClick={reconcile} disabled={checking}>
+              {checking ? <span className="spinner" aria-hidden="true" /> : <Icone name="refresh" size={17} />} Conferir pagamentos
+            </button>
+            <button type="button" className="btn btn--outline" onClick={exportCsv} disabled={!orders.length}>
+              <Icone name="download" size={17} /> Exportar planilha
+            </button>
+          </>
         }
       />
+
+      <PaymentIssues issues={issues.data} />
 
       <div className="xfilters">
         <Segmented label="Período" options={RANGES} value={range} onChange={setRange} />
@@ -292,6 +425,7 @@ export default function Vendas() {
                 <strong>{brl(open.total)}</strong>
               </li>
             </ul>
+            {open.paid_at && open.user_id && <OrderConsumption key={open.id} order={open} />}
           </div>
         )}
       </Drawer>

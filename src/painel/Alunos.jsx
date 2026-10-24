@@ -255,6 +255,7 @@ export default function Alunos() {
   const [term, setTerm] = useState('')
   const [openId, setOpenId] = useState(null)
   const list = useAsync(() => backend.admin.listStudents(term), [term])
+  const refunds = useAsync(() => backend.admin.refundCounts(), [])
   const people = list.data ?? []
   const open = people.find((p) => p.id === openId)
 
@@ -339,6 +340,11 @@ export default function Alunos() {
                       <span className="cell-sub">
                         {p.email}
                         {!p.confirmed && <em className="xbadge xbadge--warn">não confirmado</em>}
+                        {refunds.data?.[p.id] > 0 && (
+                          <em className="xbadge xbadge--warn">
+                            {refunds.data[p.id]} {refunds.data[p.id] === 1 ? 'reembolso' : 'reembolsos'}
+                          </em>
+                        )}
                       </span>
                     </td>
                     <td>{formatDate(p.created_at, false)}</td>

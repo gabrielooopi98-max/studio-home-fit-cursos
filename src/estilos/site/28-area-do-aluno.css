@@ -575,6 +575,12 @@
   gap: 8px;
 }
 
+/* botão sem ação no momento (aula ainda fechada, primeira aula) */
+.player__actions .btn--outline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .btn--done {
   background: #e6f7f0;
   border-color: #bfe8d5;
@@ -702,6 +708,22 @@
   border-color: #0f9d58;
   background: #0f9d58;
   color: #ffffff;
+}
+
+/* liberação gradual: módulo e aulas ainda fechados */
+.pmod.is-locked .pmod__title small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6b7079;
+}
+
+.plesson.is-locked {
+  color: #9a9fa8;
+}
+
+.plesson.is-locked .plesson__status {
+  border-style: dashed;
 }
 
 .plesson.is-current {

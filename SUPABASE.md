@@ -25,8 +25,29 @@ No Supabase: **SQL Editor > New query**.
 1. Cole todo o arquivo `supabase/migrations/0001_estrutura.sql` e clique em **Run**.
 2. Nova query: cole `supabase/migrations/0002_cursos_iniciais.sql` (os 8 cursos atuais, com módulos e aulas) e **Run**.
 3. Nova query: cole `supabase/migrations/0003_videos.sql` (local privado para os vídeos enviados pelo painel) e **Run**.
+4. Nova query: cole `supabase/migrations/0004_pagamentos_seguros.sql` (regras de pagamento e registro de eventos) e **Run**.
+5. Nova query: cole `supabase/migrations/0005_protecao_reembolso.sql` (liberação gradual das aulas e registro das aulas
+   abertas) e **Run**.
 
-Os arquivos podem ser rodados de novo sem duplicar nada.
+Os arquivos podem ser rodados de novo sem duplicar nada. **Sempre na ordem**: se rodar o 0001 de novo, rode o 0003, o
+0004 e o 0005 depois (eles substituem regras do 0001).
+
+### Proteção contra "assistir tudo e pedir reembolso"
+
+O direito de desistir em 7 dias (Código de Defesa do Consumidor, art. 49) não pode ser recusado. O que o 0005 faz:
+
+- **Liberação gradual** (Painel > Configurações, ligada por padrão): nas compras pagas, o 1º módulo de cada curso libera
+  na hora e os outros vão abrindo até o 8º dia (o número de dias é ajustável). Quem compra só para copiar e pedir o
+  dinheiro de volta não consegue ver o curso inteiro dentro do prazo. Cursos liberados à mão em Alunos, compras de teste
+  e cupons de 100% ficam liberados por completo. A regra é conferida no banco, não só na tela.
+- **Registro das aulas abertas:** o link de cada vídeo só é entregue aula por aula, pela função `open_lesson`, que
+  registra a abertura. O link temporário de um arquivo enviado só é gerado nos 10 minutos depois desse registro.
+- **No painel:** o pedido (Vendas) mostra quantas aulas o aluno abriu, quando, e se ele já teve reembolsos antes;
+  a lista de Alunos mostra quantos reembolsos cada um teve. Serve para responder uma contestação no Mercado Pago.
+- **Transparência:** a página do curso, a finalização da compra, os Termos de Uso e a Política de Privacidade avisam
+  sobre a liberação gradual e o registro.
+- **Limite real:** quem já tem acesso a uma aula consegue gravar a tela. A liberação gradual reduz o que dá para levar
+  dentro do prazo, mas não impede cópia do que já foi liberado.
 
 O que o `0001_estrutura.sql` cria:
 
@@ -54,7 +75,7 @@ No painel, em **Cursos > (curso) > Aulas**, cada aula tem duas opções:
   antigo é apagado do servidor.
 - **Colar link:** YouTube (não listado), Vimeo, Panda etc.
 
-Quem assiste um vídeo enviado recebe um link temporário (6 horas), gerado só para quem comprou o curso, para o admin,
+Quem assiste um vídeo enviado recebe um link temporário (2 horas), gerado só para quem comprou o curso, para o admin,
 ou para qualquer visitante se a aula estiver marcada como **prévia grátis**. Esse link não serve como endereço fixo
 para compartilhar.
 
@@ -100,57 +121,110 @@ Para ter mais administradores: **Painel > Alunos > (pessoa) > Tornar administrad
 
 ## 5. Testar tudo antes do Mercado Pago (opcional)
 
-**Painel > Configurações > Pagamentos > Modo de teste**: com ele ligado, qualquer pessoa logada "compra" sem
-pagar. Serve para testar a compra, a área do aluno e os números do painel.
+**Painel > Configurações > Pagamentos > Modo de teste**: com ele ligado, **administradores** "compram" sem pagar
+(serve para testar a compra, a área do aluno e os números do painel). Alunos não conseguem finalizar compras
+enquanto ele estiver ligado, então esquecer ligado não dá curso de graça para ninguém.
 **Desligue antes de divulgar o site.**
 
 ## 6. Ligar o Mercado Pago (Pix, cartão e boleto)
 
-1. **Credenciais**: no Mercado Pago, entre em *Seu negócio > Configurações > Credenciais* (ou no painel de
-   desenvolvedores) e copie o **Access Token**. Comece pelo de teste (`TEST-...`) e depois troque pelo de produção.
-2. **Publicar as funções** (no terminal, na pasta do projeto):
+A conta do Mercado Pago tem que ser de quem recebe o dinheiro das vendas: cada venda cai na conta dona da credencial.
+
+1. **Banco**: rode o `supabase/migrations/0004_pagamentos_seguros.sql` (passo 2), se ainda não rodou.
+2. **Aplicação no Mercado Pago**: em <https://www.mercadopago.com.br/developers/panel/app>, crie uma aplicação
+   (Pagamentos online > Checkout Pro) e abra **Credenciais**. Comece pelas **credenciais de teste**.
+3. **Secrets** (no Supabase: **Edge Functions > Secrets**, um por linha, Key e Value):
+
+   | Key | Value | |
+   |---|---|---|
+   | `MP_ACCESS_TOKEN` | o Access Token do Mercado Pago | obrigatório |
+   | `SITE_URL` | `https://studio-home-fit-cursos.vercel.app` (ou o seu domínio) | obrigatório |
+   | `MP_WEBHOOK_SECRET` | a assinatura secreta do webhook (passo 5) | obrigatório |
+   | `CONCILIACAO_SECRET` | uma senha longa qualquer, inventada por você | opcional (passo 6) |
+
+   Cole os valores **direto no Supabase**. Nunca no `.env`, no código, no GitHub, na Vercel ou em conversas.
+   Sem `MP_WEBHOOK_SECRET` o webhook recusa todos os avisos (por segurança), mas o aluno ainda recebe o curso
+   ao voltar para o site, porque a página do pedido confere o pagamento direto no Mercado Pago.
+4. **Publicar as funções** (no terminal, na pasta do projeto):
 
    ```bash
    npx supabase login
    npx supabase link --project-ref ouxmqebhjtbqiwdihyvq
-   npx supabase secrets set MP_ACCESS_TOKEN=SEU_ACCESS_TOKEN SITE_URL=https://studiohomefit.com.br
    npx supabase functions deploy criar-pagamento
    npx supabase functions deploy webhook-mercadopago
+   npx supabase functions deploy conferir-pagamento
    ```
 
-   O `supabase/config.toml` já deixa as duas funções sem a checagem automática de token, porque o login é
-   conferido dentro da `criar-pagamento` e o Mercado Pago não manda token de usuário.
-3. **Webhook**: no Mercado Pago, em *Suas integrações > (sua aplicação) > Webhooks*:
-   - URL: `https://ouxmqebhjtbqiwdihyvq.supabase.co/functions/v1/webhook-mercadopago`
+   O `supabase/config.toml` deixa as três sem a checagem automática de token: `criar-pagamento` e
+   `conferir-pagamento` conferem o login dentro da função, e o Mercado Pago não manda token de usuário (o webhook
+   confere a assinatura).
+5. **Webhook**: no Mercado Pago, em *Suas integrações > (sua aplicação) > Webhooks > Configurar notificações*:
+   - URL (modo de teste e modo produtivo): `https://ouxmqebhjtbqiwdihyvq.supabase.co/functions/v1/webhook-mercadopago`
    - Evento: **Pagamentos**
-   - Copie a **assinatura secreta** e rode:
-     `npx supabase secrets set MP_WEBHOOK_SECRET=SUA_ASSINATURA_SECRETA`
-4. **Teste** com a credencial `TEST-` e os cartões de teste do Mercado Pago. Depois troque o `MP_ACCESS_TOKEN`
-   pelo de produção e **desligue o modo de teste** no painel.
+   - Salve, copie a **assinatura secreta** e cadastre como `MP_WEBHOOK_SECRET` (passo 3).
+   - O site não manda `notification_url` na preferência de propósito: todos os avisos vêm deste webhook, que é o
+     que a documentação garante que chega assinado.
+6. **Conferência automática (opcional, recomendado)**: no Supabase, em **Integrations > Cron**, crie uma rotina
+   a cada 30 minutos que faz um **POST** para
+   `https://ouxmqebhjtbqiwdihyvq.supabase.co/functions/v1/conferir-pagamento` com o cabeçalho
+   `x-conciliacao-secret: <o mesmo valor do CONCILIACAO_SECRET>` e o corpo `{"todos": true}`.
+   Sem ela, a mesma conferência pode ser feita à mão em **Painel > Vendas > Conferir pagamentos**.
+7. **Teste** com a credencial de teste, usando os usuários e cartões de teste do Mercado Pago (nenhum dinheiro de
+   verdade). Depois troque o `MP_ACCESS_TOKEN` pelo de produção e **desligue o modo de teste** no painel.
+   Não é preciso publicar as funções de novo para trocar um secret.
 
-Como funciona:
+### Como funciona
 
-1. O aluno logado clica em pagar.
-2. A função `criar-pagamento` cria o pedido com o **preço calculado no banco** e abre a página segura do Mercado Pago.
-3. Quando o pagamento é aprovado, o Mercado Pago avisa a função `webhook-mercadopago`. Ela busca o pagamento direto
-   na API do Mercado Pago e confere se o valor bate com o pedido. Só então libera os cursos.
-4. O aluno volta para o site (`/?pedido=...`) e vê o status atualizando sozinho.
-5. Estorno ou chargeback no Mercado Pago removem o acesso daquele pedido automaticamente.
+1. O aluno logado (e-mail confirmado) clica em pagar. O navegador manda só os ids dos cursos, o cupom e os dados
+   do pagador.
+2. A função `criar-pagamento` cria o pedido com o **preço calculado no banco** (`create_order`), no nome de quem
+   está logado, e abre a página segura do Mercado Pago. Nenhum dado de cartão passa pelo site.
+3. O Mercado Pago avisa a função `webhook-mercadopago`. Ela confere a **assinatura**, busca o pagamento **direto
+   na API** do Mercado Pago e confere se foi recebido **pela nossa conta**. Depois o banco (`apply_payment`)
+   confere **pedido, valor e moeda** e só então libera os cursos.
+4. O aluno volta para o site (`/?pedido=...`). A página do pedido pede para a função `conferir-pagamento`
+   consultar o Mercado Pago, e assim o curso é liberado mesmo se o aviso atrasar ou se perder.
+5. Estorno ou chargeback removem o acesso daquele pedido. Se o aluno pagou duas vezes e só um pagamento foi
+   devolvido, o acesso continua.
+
+### Regras dos pagamentos (o que o banco faz com cada aviso)
+
+| Situação | O que acontece |
+|---|---|
+| Aprovado, valor e moeda certos | Libera os cursos do pedido (uma vez só, mesmo com avisos repetidos) |
+| Valor diferente ou moeda que não é real | Nada é liberado; aparece como alerta em **Vendas** |
+| Pagamento de outra conta, ou que já pagou outro pedido | Nada é liberado |
+| Pendente / em análise | Pedido continua pendente |
+| Recusado | Pedido fica como recusado; se o aluno tentar de novo e pagar, libera |
+| Aviso atrasado de "pendente" ou "recusado" depois de aprovado | Ignorado (o pedido continua pago) |
+| Estorno ou chargeback | Remove o acesso daquele pedido, sem tirar cursos pagos em outros pedidos |
+| Aviso atrasado de "aprovado" depois de estornado ou cancelado | Ignorado: só o admin reativa (Vendas > Marcar como pago) |
+| Pago duas vezes | Alerta em **Vendas** para devolver um dos pagamentos no Mercado Pago |
+| Disputa em andamento (`in_mediation`) | O acesso continua até o resultado |
+
+Cada aviso fica registrado na tabela `payment_events` (só o admin lê), e **Painel > Vendas** mostra o que precisa
+de atenção: pedidos pagos sem acesso, acesso de pedido não pago, pendentes antigos e alertas.
 
 ## Segurança: o que já está protegido
 
 - **RLS em todas as tabelas.** Mesmo com a chave pública (que é visível no navegador), ninguém lê ou altera o
   que não pode.
 - **Admin exige papel `admin` e e-mail confirmado.** Ninguém consegue se promover: o banco bloqueia, e testamos isso.
-- **O valor da compra nunca vem do navegador.** É calculado no banco (`quote_order`), e o webhook confere o valor
-  pago contra o total do pedido.
-- **Pedidos e matrículas só nascem no servidor:** Edge Functions com a service_role, ou o modo de teste ligado
-  pelo admin.
+- **O valor da compra nunca vem do navegador.** É calculado no banco (`quote_order`), e o banco confere o valor e
+  a moeda pagos contra o total do pedido.
+- **Pedidos e matrículas só nascem no servidor:** Edge Functions com a chave secreta, ou compra de teste de um
+  admin com o modo de teste ligado.
+- **O navegador nunca confirma pagamento.** Voltar para a página de "sucesso" não libera nada: quem decide é o
+  servidor, consultando o Mercado Pago.
 - **Vídeos protegidos.** Só quem comprou o curso (ou aula marcada como prévia grátis) consegue ler o link. Os
-  arquivos enviados ficam num bucket privado: só o admin envia ou apaga, e quem assiste recebe um link que expira.
-  Para links externos, use YouTube "não listado", Vimeo ou Panda com domínio restrito.
-- **Webhook com assinatura (HMAC) conferida** e pagamento consultado direto no Mercado Pago. Avisos repetidos
-  não liberam nada duas vezes.
+  arquivos enviados ficam num bucket privado: só o admin envia ou apaga, e quem assiste recebe um link que expira
+  em 2 horas. Para links externos, use YouTube "não listado", Vimeo ou Panda com domínio restrito.
+  Nenhuma proteção impede alguém que comprou de gravar a tela.
+- **Webhook com assinatura (HMAC) obrigatória**, pagamento consultado direto no Mercado Pago e conta recebedora
+  conferida. Avisos repetidos ou fora de ordem não liberam nada duas vezes nem desfazem um pagamento.
+- **Freios contra abuso:** no máximo 10 pedidos pendentes em 10 minutos por conta, e no máximo uma consulta ao
+  Mercado Pago a cada 5 segundos por pedido (contados no banco). Pedido de outra pessoa responde igual a pedido
+  que não existe.
 - **Login:**
   - mensagens que não revelam se o e-mail existe;
   - pausa crescente depois de 5 senhas erradas;
@@ -161,11 +235,18 @@ Como funciona:
 - **Sempre existe pelo menos um administrador:** o último não consegue se remover.
 - **Trocar a senha desconecta os outros aparelhos**, tanto pelo "esqueci minha senha" quanto em Minha conta.
 - **Cabeçalhos de segurança no site publicado** (`vercel.json`): o navegador só carrega scripts do próprio site e só envia dados para o Supabase. O site também não pode ser aberto dentro de outro site, o que evita cliques falsos.
+- **Testes automáticos** (`npm test`): os cenários de pagamento rodam contra o banco de verdade (PostgreSQL) com
+  um Mercado Pago simulado. Nenhuma cobrança real.
 
 Arquivos do servidor:
 
 - `supabase/migrations/0001_estrutura.sql`: tabelas, regras (RLS), funções e permissões.
 - `supabase/migrations/0002_cursos_iniciais.sql`: cursos iniciais.
 - `supabase/migrations/0003_videos.sql`: bucket privado dos vídeos e quem pode assistir.
+- `supabase/migrations/0004_pagamentos_seguros.sql`: regras de pagamento, registro de eventos e conferência.
+- `supabase/migrations/0005_protecao_reembolso.sql`: liberação gradual das aulas e registro das aulas abertas.
 - `supabase/functions/criar-pagamento`: cria o pedido e o pagamento.
 - `supabase/functions/webhook-mercadopago`: confirma pagamentos, estornos e chargebacks.
+- `supabase/functions/conferir-pagamento`: confere pedidos direto no Mercado Pago (volta do aluno, painel e rotina).
+- `supabase/functions/_compartilhado`: as regras (`pagamentos.js`, `mercadopago.js`) e a ligação com o Supabase e o
+  Mercado Pago (`servicos.js`).

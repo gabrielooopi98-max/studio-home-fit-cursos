@@ -14,6 +14,7 @@ function validate(s) {
   if (p.base) e.comboPrice = p.base
   if (p.discount) e.comboDiscount = p.discount
   if (!(Number(s.comboInstallments) >= 1 && Number(s.comboInstallments) <= 24)) e.comboInstallments = 'Entre 1 e 24.'
+  if (!(Number.isInteger(Number(s.dripDays)) && Number(s.dripDays) >= 1 && Number(s.dripDays) <= 60)) e.dripDays = 'Entre 1 e 60 dias.'
   if (s.whatsapp && !/^\d{12,13}$/.test(s.whatsapp)) e.whatsapp = 'Só números, com 55 + DDD (ex.: 5564999258218).'
   for (const k of ['instagram', 'youtube']) if (s[k] && !/^https:\/\/\S+$/.test(s[k])) e[k] = 'Cole o link completo, começando com https://'
   if (s.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.contactEmail)) e.contactEmail = 'E-mail inválido.'
@@ -54,6 +55,7 @@ function SettingsForm({ initial }) {
         comboPrice: fromPricing(s.comboPricing).price,
         comboOldPrice: fromPricing(s.comboPricing).oldPrice,
         comboInstallments: Number(s.comboInstallments),
+        dripDays: Number(s.dripDays),
         comboFeatures: s.featuresText
           .split('\n')
           .map((f) => f.trim())
@@ -90,8 +92,8 @@ function SettingsForm({ initial }) {
           <p>
             {s.testMode ? (
               <>
-                <Icone name="alert" size={16} /> <strong>Qualquer pessoa logada consegue "comprar" sem pagar.</strong> Use só para
-                testar o site e o painel. Desligue antes de divulgar.
+                <Icone name="alert" size={16} /> <strong>Administradores "compram" sem pagar; alunos não conseguem finalizar compras.</strong>{' '}
+                Use só para testar o site e o painel. Desligue antes de divulgar.
               </>
             ) : (
               <>As compras vão para o Mercado Pago (Pix, cartão e boleto). O acesso é liberado quando o pagamento é aprovado.</>
@@ -111,8 +113,8 @@ function SettingsForm({ initial }) {
               <code>SITE_URL</code> com o endereço do site (ex.: https://studiohomefit.com.br).
             </li>
             <li>
-              Publique as funções <code>criar-pagamento</code> e <code>webhook-mercadopago</code> (passo a passo no arquivo{' '}
-              <code>SUPABASE.md</code> do projeto).
+              Publique as funções <code>criar-pagamento</code>, <code>webhook-mercadopago</code> e <code>conferir-pagamento</code>{' '}
+              (passo a passo no arquivo <code>SUPABASE.md</code> do projeto).
             </li>
             <li>
               No Mercado Pago, em <strong>Webhooks</strong>, cadastre a URL da função <code>webhook-mercadopago</code> e copie a{' '}
@@ -120,6 +122,63 @@ function SettingsForm({ initial }) {
             </li>
           </ol>
         </details>
+      </Card>
+
+      <Card
+        title="Proteção contra reembolso abusivo"
+        subtitle="Evita que alguém compre, assista ao curso inteiro e peça o dinheiro de volta nos 7 dias de garantia."
+      >
+        {!s.dripSupported ? (
+          <p className="xwarn">
+            <Icone name="alert" size={16} />
+            <span>
+              Para ativar, rode o arquivo <code>supabase/migrations/0005_protecao_reembolso.sql</code> no SQL Editor do
+              Supabase e recarregue esta página.
+            </span>
+          </p>
+        ) : (
+        <div className="xform">
+          <Toggle
+            checked={s.dripEnabled}
+            onChange={(v) => setS((x) => ({ ...x, dripEnabled: v }))}
+            label={s.dripEnabled ? 'Liberação gradual LIGADA' : 'Liberação gradual desligada'}
+          />
+          <Field
+            label="Liberar o curso inteiro em"
+            hint={`O 1º módulo libera na hora da compra e os outros vão abrindo até o ${Number(s.dripDays) || '?'}º dia. Deixe acima de 7 para que ninguém veja tudo dentro do prazo de reembolso.`}
+            error={show('dripDays')}
+          >
+            {(p) => (
+              <div className="xprefix xprefix--end">
+                <input
+                  {...p}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={60}
+                  value={s.dripDays}
+                  onChange={set('dripDays')}
+                  disabled={!s.dripEnabled}
+                />
+                <span>dias</span>
+              </div>
+            )}
+          </Field>
+          <p className="xfield__hint">
+            Vale para compras pagas pelo Mercado Pago. Cursos liberados por você em <strong>Alunos</strong>, compras de teste e
+            cupons de 100% ficam liberados por completo. O aluno vê na tela quando cada módulo libera, e isso também aparece
+            na página do curso, na finalização da compra e nos Termos de Uso. Cada aula aberta fica registrada: em{' '}
+            <strong>Vendas</strong>, o pedido mostra quantas aulas o aluno abriu e se ele já pediu reembolso antes.
+          </p>
+          <p className="xwarn">
+            <Icone name="alert" size={16} />
+            <span>
+              O direito de desistir em 7 dias (Código de Defesa do Consumidor, art. 49) continua valendo: o reembolso pedido
+              dentro do prazo deve ser feito. A liberação gradual só impede que o curso inteiro seja visto nesse período.
+            </span>
+          </p>
+        </div>
+        )}
       </Card>
 
       <Card title="Combo Completo" subtitle="O plano com todos os cursos, na seção Planos do site.">

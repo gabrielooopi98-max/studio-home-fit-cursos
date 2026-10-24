@@ -10,6 +10,12 @@ import { useAuth, useLibrary, useStore } from '../estado/hooks'
 const percent = (part, total) => (total ? Math.round((part / total) * 100) : 0)
 const flatLessons = (curriculum) => curriculum.flatMap((mod) => mod.lessons.map((l) => ({ ...l, module: mod })))
 
+// "12/11 às 14:05" (quando uma aula da liberação gradual abre)
+const quando = (iso) => {
+  const d = new Date(iso)
+  return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+}
+
 function ProgressBar({ value, label }) {
   return (
     <div
@@ -189,8 +195,8 @@ function Library({ courses: allCourses, owned, done }) {
 /* =========================================================
    Player: vídeo da aula + lista de módulos e aulas
    ========================================================= */
-function Video({ lesson, course, loading, onEnded }) {
-  if (loading) {
+function Video({ lesson, course, media, onEnded }) {
+  if (media.lessonId !== lesson.id) {
     return (
       <div className="video video--soon">
         <div className="video__soon">
@@ -201,7 +207,41 @@ function Video({ lesson, course, loading, onEnded }) {
     )
   }
 
-  const src = toEmbedUrl(lesson.video)
+  // liberação gradual: aula ainda fechada (quem decide é o banco, não esta tela)
+  if (media.locked) {
+    return (
+      <div className="video video--soon">
+        <img src={img(course.image, 1200)} alt="" />
+        <div className="video__soon">
+          <span className="video__soon-icon">
+            <Icone name="lock" size={26} />
+          </span>
+          <strong>Libera em {quando(media.unlockAt)}</strong>
+          <span>
+            As aulas são liberadas aos poucos nos primeiros dias depois da compra. Enquanto isso, continue pelos módulos
+            já liberados.
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  if (media.error) {
+    return (
+      <div className="video video--soon">
+        <img src={img(course.image, 1200)} alt="" />
+        <div className="video__soon">
+          <span className="video__soon-icon">
+            <Icone name="alert" size={26} />
+          </span>
+          <strong>Não foi possível abrir a aula</strong>
+          <span>{media.error}</span>
+        </div>
+      </div>
+    )
+  }
+
+  const src = toEmbedUrl(media.url || lesson.videoUrl)
   if (!src || !isPlayableUrl(src)) {
     return (
       <div className="video video--soon">
@@ -239,27 +279,44 @@ function Video({ lesson, course, loading, onEnded }) {
   )
 }
 
-function Player({ course, done, onToggleDone, onMarkDone }) {
+function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
   const curriculum = course.curriculum.filter((m) => m.lessons.length)
   const all = flatLessons(curriculum)
 
-  // links dos vídeos: o banco só entrega para quem comprou (ou é admin)
-  const [videos, setVideos] = useState({ courseId: null, map: {} })
+  // liberação gradual: quando cada módulo abre para este aluno (o admin vê tudo)
+  const [unlocks, setUnlocks] = useState({})
+  const [now] = useState(() => Date.now())
   useEffect(() => {
+    if (isAdmin) return
     let alive = true
     backend
-      .getLessonVideos(course.id)
-      .then((map) => alive && setVideos({ courseId: course.id, map }))
-      .catch(() => alive && setVideos({ courseId: course.id, map: {} }))
+      .getCourseUnlocks(course.id)
+      .then((map) => alive && setUnlocks(map))
+      .catch(() => {})
     return () => {
       alive = false
     }
-  }, [course.id])
-  const videosReady = videos.courseId === course.id
-  const lessons = all.map((l) => ({ ...l, video: videos.map[l.id] || l.videoUrl || '' }))
+  }, [course.id, isAdmin])
+  const lockedUntil = (mod) => (unlocks[mod.id] && Date.parse(unlocks[mod.id]) > now ? unlocks[mod.id] : null)
+  const lessons = all.map((l) => ({ ...l, lockedUntil: l.isPreview ? null : lockedUntil(l.module) }))
 
   // abre na primeira aula ainda não concluída
   const [currentId, setCurrentId] = useState(() => (lessons.find((l) => !done.includes(l.id)) ?? lessons[0])?.id)
+  const lessonId = (lessons.find((l) => l.id === currentId) ?? lessons[0])?.id
+
+  // vídeo da aula aberta: pedido um por um; o banco confere a liberação e registra a abertura
+  const [media, setMedia] = useState({ lessonId: null })
+  useEffect(() => {
+    if (!lessonId) return
+    let alive = true
+    backend
+      .openLesson(lessonId)
+      .then((r) => alive && setMedia({ lessonId, ...r }))
+      .catch((e) => alive && setMedia({ lessonId, locked: false, url: '', error: e.message }))
+    return () => {
+      alive = false
+    }
+  }, [lessonId])
 
   if (!lessons.length) {
     return (
@@ -277,11 +334,13 @@ function Player({ course, done, onToggleDone, onMarkDone }) {
     )
   }
 
-  const index = Math.max(0, lessons.findIndex((l) => l.id === currentId))
+  const index = Math.max(0, lessons.findIndex((l) => l.id === lessonId))
   const lesson = lessons[index]
   const prev = lessons[index - 1]
   const next = lessons[index + 1]
   const isDone = done.includes(lesson.id)
+  // aula fechada pela liberação gradual (pela data conhecida ou pela resposta do banco)
+  const locked = !!lesson.lockedUntil || (media.lessonId === lesson.id && media.locked)
   const finished = lessons.filter((l) => done.includes(l.id)).length
   const value = percent(finished, lessons.length)
 
@@ -300,7 +359,7 @@ function Player({ course, done, onToggleDone, onMarkDone }) {
       <section className="player">
         <div className="container player__grid">
           <div className="player__main">
-            <Video lesson={lesson} course={course} loading={!videosReady} onEnded={() => onMarkDone(lesson.id)} />
+            <Video lesson={lesson} course={course} media={media} onEnded={() => onMarkDone(lesson.id)} />
 
             <div className="player__info">
               <div>
@@ -316,6 +375,7 @@ function Player({ course, done, onToggleDone, onMarkDone }) {
                   className={`btn btn--sm ${isDone ? 'btn--done' : 'btn--outline'}`}
                   onClick={() => onToggleDone(lesson.id)}
                   aria-pressed={isDone}
+                  disabled={locked && !isDone}
                 >
                   <Icone name="check" size={16} strokeWidth={3} /> {isDone ? 'Aula concluída' : 'Marcar como concluída'}
                 </button>
@@ -333,7 +393,7 @@ function Player({ course, done, onToggleDone, onMarkDone }) {
                     type="button"
                     className="btn btn--sm btn--primary"
                     onClick={() => {
-                      onMarkDone(lesson.id)
+                      if (!locked) onMarkDone(lesson.id)
                       // `?.`: o React Compiler usa o id como dependência do handler (lido no render)
                       if (next) go(next?.id)
                     }}
@@ -367,33 +427,44 @@ function Player({ course, done, onToggleDone, onMarkDone }) {
             <div className="player__modules">
               {curriculum.map((mod, m) => {
                 const modDone = mod.lessons.filter((l) => done.includes(l.id)).length
+                const modLocked = lockedUntil(mod)
                 return (
-                  <section className="pmod" key={mod.id}>
+                  <section className={`pmod ${modLocked ? 'is-locked' : ''}`} key={mod.id}>
                     <h3 className="pmod__title">
                       <span>Módulo {m + 1}</span>
                       {mod.title}
                       <small>
-                        {modDone}/{mod.lessons.length} aulas
+                        {modLocked ? (
+                          <>
+                            <Icone name="lock" size={12} /> Libera em {quando(modLocked)}
+                          </>
+                        ) : (
+                          <>
+                            {modDone}/{mod.lessons.length} aulas
+                          </>
+                        )}
                       </small>
                     </h3>
                     <ol className="pmod__lessons">
                       {mod.lessons.map((l) => {
                         const current = l.id === lesson.id
                         const lDone = done.includes(l.id)
+                        const lLocked = modLocked && !l.isPreview
                         return (
                           <li key={l.id}>
                             <button
                               type="button"
-                              className={`plesson ${current ? 'is-current' : ''} ${lDone ? 'is-done' : ''}`}
+                              className={`plesson ${current ? 'is-current' : ''} ${lDone ? 'is-done' : ''} ${lLocked ? 'is-locked' : ''}`}
                               onClick={() => go(l.id)}
                               aria-current={current ? 'true' : undefined}
                             >
                               <span className="plesson__status" aria-hidden="true">
-                                <Icone name={lDone ? 'check' : 'play'} size={12} strokeWidth={lDone ? 3.2 : 2} />
+                                <Icone name={lDone ? 'check' : lLocked ? 'lock' : 'play'} size={12} strokeWidth={lDone ? 3.2 : 2} />
                               </span>
                               <span className="plesson__title">{l.title}</span>
                               {l.duration && <span className="plesson__time">{l.duration}</span>}
                               {lDone && <span className="sr-only">(concluída)</span>}
+                              {lLocked && <span className="sr-only">(ainda não liberada)</span>}
                             </button>
                           </li>
                         )
@@ -469,6 +540,7 @@ export default function AreaDoAluno({ courseId }) {
       key={course.id}
       course={course}
       done={library.done}
+      isAdmin={auth.isAdmin}
       onToggleDone={library.toggleDone}
       onMarkDone={library.markDone}
     />

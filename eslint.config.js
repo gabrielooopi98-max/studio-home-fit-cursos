@@ -18,4 +18,13 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  // Edge Functions do Supabase (rodam no Deno) e testes automáticos (rodam no Node)
+  {
+    files: ['supabase/functions/**/*.js'],
+    languageOptions: { globals: { ...globals.browser, Deno: 'readonly' } },
+  },
+  {
+    files: ['testes/**/*.js'],
+    languageOptions: { globals: globals.node },
+  },
 ])

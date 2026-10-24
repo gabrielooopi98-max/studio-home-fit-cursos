@@ -34,6 +34,8 @@ export default function Planos({ cartIds, onAdd }) {
   const inCart = cartIds.includes(PLAN.id)
   const saving = PLAN.oldPrice > PLAN.price ? PLAN.oldPrice - PLAN.price : 0
   const off = saving ? Math.round((saving / PLAN.oldPrice) * 100) : 0
+  // preço em partes: "R$" e centavos menores, reais em destaque
+  const [reais, centavos] = Number(PLAN.price).toFixed(2).split('.')
 
   return (
     <section className="section pricing" id="planos">
@@ -46,53 +48,60 @@ export default function Planos({ cartIds, onAdd }) {
           <p className="section__lead">Pagamento único, sem mensalidade e sem taxas escondidas.</p>
         </div>
 
+        {/*
+          Ordem no computador: nome e inclusos à esquerda, preço à direita.
+          No celular o preço sobe para logo depois do nome (grid-template-areas no CSS).
+        */}
         <article className="offer reveal">
-          {/* O que está incluso */}
-          <div className="offer__main">
+          <header className="offer__head">
             <span className="offer__tag">
               <Icone name="star" size={14} /> Mais escolhido
             </span>
             <h3 className="offer__name">{PLAN.name}</h3>
-            <p className="offer__desc">{PLAN.description}</p>
-
-            <p className="offer__label">O que está incluso</p>
-            <ul className="offer__features">
-              {PLAN.features.map((f) => (
-                <li key={f}>
-                  <span className="offer__check">
-                    <Icone name="check" size={13} strokeWidth={3.2} />
-                  </span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-
-            <p className="offer__label">Cursos inclusos</p>
-            <ul className="offer__courses">
-              {courses.map((c) => (
-                <li key={c.id}>{c.title}</li>
-              ))}
-            </ul>
-          </div>
+            {PLAN.description && <p className="offer__desc">{PLAN.description}</p>}
+          </header>
 
           {/* Preço e compra */}
           <div className="offer__side">
-            <img className="offer__logo" src={logoBranca} alt="Studio HomeFit" width="626" height="178" />
-            {off > 0 && <span className="offer__off">-{off}%</span>}
+            <div className="offer__top">
+              <img className="offer__logo" src={logoBranca} alt="Studio HomeFit" width="626" height="178" />
+              {off > 0 ? <span className="offer__off">-{off}%</span> : <span className="offer__once">Pagamento único</span>}
+            </div>
 
-            {saving > 0 && (
-              <p className="offer__from">
-                De <s>{formatBRL(PLAN.oldPrice)}</s> por
-              </p>
-            )}
-            <strong className="offer__price">{formatBRL(PLAN.price)}</strong>
-            <p className="offer__note">{PLAN.note}</p>
+            <div className="offer__pricebox">
+              {saving > 0 && (
+                <p className="offer__from">
+                  De <s>{formatBRL(PLAN.oldPrice)}</s> por
+                </p>
+              )}
+              <strong className="offer__price" aria-label={formatBRL(PLAN.price)}>
+                <span className="offer__cur" aria-hidden="true">
+                  R$
+                </span>
+                <span aria-hidden="true">{Number(reais).toLocaleString('pt-BR')}</span>
+                <span className="offer__cents" aria-hidden="true">
+                  ,{centavos}
+                </span>
+              </strong>
+              <p className="offer__note">{PLAN.note}</p>
+              {saving > 0 && (
+                <span className="offer__saving">
+                  <Icone name="tag" size={15} /> Você economiza {formatBRL(saving)}
+                </span>
+              )}
+            </div>
 
-            {saving > 0 && (
-              <span className="offer__saving">
-                <Icone name="tag" size={15} /> Você economiza {formatBRL(saving)}
-              </span>
-            )}
+            <ul className="offer__perks">
+              <li>
+                <Icone name="zap" size={16} /> Acesso liberado assim que o pagamento é aprovado
+              </li>
+              <li>
+                <Icone name="infinity" size={16} /> Acesso vitalício, com as atualizações
+              </li>
+              <li>
+                <Icone name="creditCard" size={16} /> Pix, cartão ou boleto
+              </li>
+            </ul>
 
             <button
               type="button"
@@ -112,7 +121,7 @@ export default function Planos({ cartIds, onAdd }) {
             </button>
 
             <p className="offer__secure">
-              <Icone name="lock" size={14} /> Pagamento 100% seguro · Acesso imediato
+              <Icone name="lock" size={14} /> Pagamento seguro pelo Mercado Pago
             </p>
 
             <div className="offer__guarantee">
@@ -124,6 +133,35 @@ export default function Planos({ cartIds, onAdd }) {
                 <span>Se não sentir diferença no treino, devolvemos 100% do seu dinheiro.</span>
               </div>
             </div>
+          </div>
+
+          {/* O que está incluso */}
+          <div className="offer__body">
+            <p className="offer__label">O que está incluso</p>
+            <ul className="offer__features">
+              {PLAN.features.map((f) => (
+                <li key={f}>
+                  <span className="offer__check">
+                    <Icone name="check" size={13} strokeWidth={3.2} />
+                  </span>
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </li>
+              ))}
+            </ul>
+
+            <p className="offer__label">
+              Cursos inclusos <span className="offer__count">{courses.length}</span>
+            </p>
+            <ol className="offer__courses">
+              {courses.map((c, i) => (
+                <li key={c.id}>
+                  <span className="offer__num" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  {c.title}
+                </li>
+              ))}
+            </ol>
           </div>
         </article>
 

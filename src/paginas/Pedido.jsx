@@ -9,8 +9,8 @@ import { formatDate, shortId } from '../servicos/pedidos'
 import { useAuth } from '../estado/hooks'
 
 // Volta do Mercado Pago: acompanha o pedido até o pagamento ser confirmado pelo servidor
-const POLL_MS = 3000
-const MAX_TRIES = 60
+const POLL_MS = 5000
+const MAX_TRIES = 72
 
 const COPY = {
   paid: {
@@ -56,8 +56,12 @@ export default function Pedido({ orderId, onPaid }) {
   useEffect(() => {
     if (!userId) return
     let alive = true
+    // o servidor confere o pagamento direto no Mercado Pago (libera mesmo se o aviso atrasar);
+    // se a conferência falhar, só lê o pedido como está
     backend
-      .getOrder(orderId)
+      .verifyOrder(orderId)
+      .catch(() => null)
+      .then(() => backend.getOrder(orderId))
       .then((o) => {
         if (!alive) return
         setOrder(o ?? null)
@@ -69,7 +73,7 @@ export default function Pedido({ orderId, onPaid }) {
     }
   }, [orderId, userId, tries])
 
-  // enquanto estiver pendente, consulta de novo a cada 3 segundos (por até 3 minutos)
+  // enquanto estiver pendente, consulta de novo a cada 5 segundos (por até 6 minutos)
   const pending = order?.status === 'pending'
   useEffect(() => {
     if (!pending || tries >= MAX_TRIES) return

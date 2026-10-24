@@ -75,6 +75,10 @@ export const toSettings = (row) => ({
   comboActive: row.combo_active !== false,
   comboFeatures: row.combo_features ?? [],
   testMode: !!row.test_mode,
+  // liberação gradual das aulas (0005_protecao_reembolso.sql); banco sem as colunas = desligada
+  dripSupported: 'drip_enabled' in row,
+  dripEnabled: row.drip_enabled === true,
+  dripDays: row.drip_days ?? 8,
   whatsapp: row.whatsapp ?? '',
   instagram: row.instagram ?? '',
   youtube: row.youtube ?? '',

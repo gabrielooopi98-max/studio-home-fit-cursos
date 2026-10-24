@@ -155,6 +155,15 @@ export default function PaginaDoCurso({ slug, cartIds, onAdd, onBuyNow }) {
                 <Modulo key={m.id} modulo={m} numero={i + 1} aberto={i === 0} />
               ))}
             </ol>
+            {store.settings?.dripEnabled && modulos.length > 1 && (
+              <p className="curso-libera">
+                <Icone name="clock" size={18} />
+                <span>
+                  <strong>Como as aulas são liberadas:</strong> o 1º módulo libera na hora da compra e os outros vão abrindo aos
+                  poucos, até o {store.settings.dripDays}º dia. Depois disso, o curso inteiro fica disponível para sempre.
+                </span>
+              </p>
+            )}
 
             <h2 className="curso-titulo">
               <Icone name="checkCircle" size={20} /> O que está incluso

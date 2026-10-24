@@ -17,7 +17,7 @@ const err = (message) => {
 // ----- dados iniciais -----
 // arquivos de vídeo "enviados": caminho -> endereço local do arquivo (blob:)
 const files = new Map()
-const db = { users: [], profiles: [], courses: [], modules: [], lessons: [], media: [], coupons: [], orders: [], items: [], enrollments: [], progress: [] }
+const db = { users: [], profiles: [], courses: [], modules: [], lessons: [], media: [], coupons: [], orders: [], items: [], enrollments: [], progress: [], views: [] }
 let settings = {
   combo_title: PLANS[0].name,
   combo_description: PLANS[0].description,
@@ -27,6 +27,8 @@ let settings = {
   combo_active: true,
   combo_features: PLANS[0].features,
   test_mode: true,
+  drip_enabled: true,
+  drip_days: 8,
   whatsapp: '5564999258218',
   instagram: '',
   youtube: '',
@@ -194,10 +196,37 @@ export const backend = {
     db.progress = db.progress.filter((p) => !(p.user_id === userId && p.lesson_id === lessonId))
     if (done) db.progress.push({ user_id: userId, lesson_id: lessonId })
   },
-  async getLessonVideos(courseId) {
-    const owned = isAdmin() || db.enrollments.some((e) => e.user_id === me() && e.course_id === courseId)
-    const link = (v) => (storedPath(v) ? (files.get(storedPath(v)) ?? '') : v)
-    return Object.fromEntries(owned ? db.media.filter((m) => m.course_id === courseId).map((m) => [m.lesson_id, link(m.video_url)]) : [])
+  // mesma regra do module_unlock_at do banco: 1º módulo na hora, o último no dia drip_days
+  async getCourseUnlocks(courseId) {
+    await wait()
+    const e = db.enrollments.find((x) => x.user_id === me() && x.course_id === courseId)
+    if (!e) return {}
+    const o = db.orders.find((x) => x.id === e.order_id)
+    const mods = db.modules
+      .filter((m) => m.course_id === courseId && db.lessons.some((l) => l.module_id === m.id))
+      .sort((a, b) => a.position - b.position)
+    const gradual = settings.drip_enabled && o && o.payment_provider === 'mercadopago' && o.total > 0
+    const base = new Date(o?.paid_at ?? e.created_at).getTime()
+    return Object.fromEntries(
+      mods.map((m, i) => {
+        const days = !gradual || mods.length <= 1 ? 0 : Math.round((i * settings.drip_days) / (mods.length - 1))
+        return [m.id, new Date(base + days * 864e5).toISOString()]
+      }),
+    )
+  },
+  async openLesson(lessonId) {
+    const l = db.lessons.find((x) => x.id === lessonId)
+    if (!l) err('Aula não encontrada')
+    const unlocks = await backend.getCourseUnlocks(l.course_id)
+    if (!isAdmin() && !l.is_preview) {
+      if (!unlocks[l.module_id]) err('Você não tem acesso a esta aula')
+      if (new Date(unlocks[l.module_id]) > new Date()) return { locked: true, unlockAt: unlocks[l.module_id] }
+      const v = db.views.find((x) => x.user_id === me() && x.lesson_id === lessonId)
+      if (v) Object.assign(v, { last_viewed_at: now(), views: v.views + 1 })
+      else db.views.push({ user_id: me(), lesson_id: lessonId, course_id: l.course_id, first_viewed_at: now(), last_viewed_at: now(), views: 1 })
+    }
+    const video = db.media.find((m) => m.lesson_id === lessonId)?.video_url ?? ''
+    return { locked: false, url: storedPath(video) ? (files.get(storedPath(video)) ?? '') : video }
   },
   async quote(args) {
     await wait()
@@ -223,6 +252,11 @@ export const backend = {
     await wait()
     const o = db.orders.find((x) => x.id === orderId && (x.user_id === me() || isAdmin()))
     return o ? { ...o, order_items: db.items.filter((i) => i.order_id === o.id) } : null
+  },
+  // no simulado não há Mercado Pago: a conferência só devolve a situação atual
+  async verifyOrder(orderId) {
+    await wait()
+    return db.orders.find((x) => x.id === orderId && (x.user_id === me() || isAdmin()))?.status ?? null
   },
   async getMyOrders(userId) {
     return db.orders.filter((o) => o.user_id === userId).map((o) => ({ ...o, order_items: db.items.filter((i) => i.order_id === o.id) })).sort((a, b) => b.created_at.localeCompare(a.created_at))
@@ -409,6 +443,40 @@ export const backend = {
       if (status !== 'paid') db.enrollments = db.enrollments.filter((e) => e.order_id !== id)
       return status
     },
+    async reconcilePayments() {
+      requireAdmin()
+      await wait(300)
+      const pending = db.orders.filter((o) => o.status === 'pending').length
+      return { checked: pending, results: pending ? { sem_pagamento: pending } : {}, repaired: 0 }
+    },
+    async orderConsumption(orderId) {
+      requireAdmin()
+      await wait()
+      const o = db.orders.find((x) => x.id === orderId)
+      const items = db.items.filter((i) => i.order_id === orderId)
+      const courses = items.some((i) => i.kind === 'combo') ? db.courses.filter((c) => c.published).map((c) => c.id) : items.map((i) => i.course_id)
+      const views = db.views.filter((v) => v.user_id === o.user_id && courses.includes(v.course_id) && v.first_viewed_at >= (o.paid_at ?? o.created_at))
+      return {
+        lessons_total: db.lessons.filter((l) => courses.includes(l.course_id)).length,
+        lessons_opened: views.length,
+        lessons_done: db.progress.filter((p) => p.user_id === o.user_id && courses.includes(db.lessons.find((l) => l.id === p.lesson_id)?.course_id)).length,
+        first_view: views.map((v) => v.first_viewed_at).sort()[0] ?? null,
+        last_view: views.map((v) => v.last_viewed_at).sort().pop() ?? null,
+        refunds: db.orders.filter((x) => x.user_id === o.user_id && x.status === 'refunded').length,
+        refunds_with_access: 0,
+      }
+    },
+    async refundCounts() {
+      requireAdmin()
+      const counts = {}
+      for (const o of db.orders) if (o.status === 'refunded' && o.user_id) counts[o.user_id] = (counts[o.user_id] ?? 0) + 1
+      return counts
+    },
+    async paymentIssues() {
+      requireAdmin()
+      await wait()
+      return { paid_without_access: [], access_without_payment: [], old_pending: 0, alerts: [] }
+    },
     async listStudents(search) {
       requireAdmin()
       await wait()
@@ -473,6 +541,7 @@ export const backend = {
       settings = {
         combo_title: s.comboTitle, combo_description: s.comboDescription, combo_price: s.comboPrice, combo_old_price: s.comboOldPrice,
         combo_installments: s.comboInstallments, combo_active: s.comboActive, combo_features: s.comboFeatures, test_mode: s.testMode,
+        drip_enabled: s.dripEnabled, drip_days: s.dripDays,
         whatsapp: s.whatsapp, instagram: s.instagram, youtube: s.youtube, contact_email: s.contactEmail,
       }
       return toSettings(settings)

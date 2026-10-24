@@ -382,6 +382,13 @@ export default function FinalizarCompra({ items, onClose, onComplete, onClearCar
                       Política de Privacidade
                     </a>
                     . Você tem 7 dias de garantia para pedir o reembolso.
+                    {settings?.dripEnabled && (
+                      <>
+                        {' '}
+                        As aulas são liberadas aos poucos: o 1º módulo de cada curso na hora e o curso inteiro até o{' '}
+                        {settings.dripDays}º dia depois da compra.
+                      </>
+                    )}
                   </p>
                 </div>
               )}
