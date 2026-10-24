@@ -1,0 +1,34 @@
+/* =========================================================
+   Movimento reduzido: só em celular e tablet (telas sem mouse).
+   No computador as animações rodam sempre, mesmo com "Efeitos de
+   animação" desligado no Windows. Hovers e fades continuam; só os
+   deslocamentos grandes e o que se move sozinho são removidos.
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) and (hover: none) {
+
+  .has-reveal .reveal.is-visible,
+  .problem__cards.is-visible > *,
+  .header--open .nav__list li,
+  .header--open .nav__footer,
+  .course,
+  .hero__in,
+  .hero__brand,
+  .hero__panel,
+  .hero__edge,
+  .hero__band,
+  .hero__duo {
+    animation-name: fadeIn;
+  }
+
+  .decor,
+  .problem::before,
+  .problem::after,
+  .courses::before,
+  .courses::after,
+  .pricing::before,
+  .pricing::after,
+  .faq::before,
+  .faq::after {
+    animation: none;
+  }
+}

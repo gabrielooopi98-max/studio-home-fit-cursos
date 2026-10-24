@@ -1,0 +1,8 @@
+# Quebras de linha no padrão LF em todos os arquivos de texto (igual no Windows, Mac e na hospedagem)
+* text=auto eol=lf
+
+# Imagens e fontes: binários, sem conversão
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary

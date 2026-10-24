@@ -1,0 +1,314 @@
+/* =========================================================
+   Carrinho (drawer)
+   ========================================================= */
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.drawer--open {
+  pointer-events: auto;
+}
+
+.drawer__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(10 10 11 / 0.55);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+.drawer--open .drawer__overlay {
+  opacity: 1;
+}
+
+.drawer__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  box-shadow: 0 30px 60px -20px rgb(10 10 11 / 0.35);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition:
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.45s;
+}
+
+.drawer--open .drawer__panel {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e4e6ea;
+}
+
+.drawer__head h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+}
+
+.drawer__head h2 span {
+  font-size: 0.75rem;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: #1f5bff;
+  color: #ffffff;
+}
+
+.drawer__empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  color: #6b7079;
+}
+
+.drawer__empty>span {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #f1f2f4;
+  color: #9a9fa8;
+}
+
+/* Lista do carrinho: cards com foto, nível, aulas e preço com desconto */
+.drawer__list {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 16px 20px;
+  background: #f8f9fa;
+}
+
+.citem {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid #e4e6ea;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px -20px rgb(10 10 11 / 0.35);
+  animation: stepIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.citem__thumb {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #17181c;
+}
+
+.citem__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Plano: logo branca sobre o preto, no lugar da foto */
+.citem__thumb--plan {
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: url('../../imagens/tinta-textura-clara.svg') center / 400px 250px #0a0a0b;
+}
+
+.citem__thumb--plan img {
+  height: auto;
+  object-fit: contain;
+}
+
+.citem__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 30px;
+}
+
+.citem__tag {
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #edf1ff;
+  color: #1f5bff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.citem__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.citem__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: #6b7079;
+  font-size: 0.76rem;
+}
+
+.citem__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.citem__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.citem__price s {
+  color: #9a9fa8;
+  font-size: 0.76rem;
+}
+
+.citem__price strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.citem__off {
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: #e6f7f0;
+  color: #0f7d48;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.citem__remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #9a9fa8;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.citem__remove:hover {
+  color: #e5322d;
+  background: #fdeeee;
+}
+
+/* Resumo: preço cheio, descontos e total */
+.drawer__sum {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed #c9ccd2;
+  font-size: 0.88rem;
+}
+
+.drawer__sum > div {
+  display: flex;
+  justify-content: space-between;
+  color: #50545c;
+}
+
+.drawer__sum dd {
+  margin: 0;
+}
+
+.drawer__discount dd {
+  color: #0f7d48;
+  font-weight: 700;
+}
+
+@media (max-width: 400px) {
+  .drawer__list {
+    padding: 12px;
+  }
+
+  .citem__thumb {
+    width: 76px;
+    height: 76px;
+  }
+}
+
+.drawer__foot {
+  padding: 22px 24px 26px;
+  border-top: 1px solid #e4e6ea;
+  background: #f8f9fa;
+}
+
+.drawer__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.drawer__total span {
+  font-weight: 600;
+  color: #50545c;
+}
+
+.drawer__total strong {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.drawer__installments {
+  text-align: right;
+  font-size: 0.82rem;
+  color: #6b7079;
+  margin-bottom: 18px;
+}
+
+.drawer__secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 0.8rem;
+  color: #6b7079;
+}

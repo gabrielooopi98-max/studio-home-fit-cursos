@@ -1,0 +1,105 @@
+/* =========================================================
+   Modal base
+   ========================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.modal__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(10 10 11 / 0.7);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal__panel {
+  position: relative;
+  width: 100%;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 40px 100px -20px rgb(0 0 0 / 0.6);
+  animation: modalIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  outline: none;
+}
+
+.modal__panel--md {
+  max-width: 560px;
+}
+
+.modal__panel--lg {
+  max-width: 980px;
+}
+
+.modal__panel--xl {
+  max-width: 1080px;
+}
+
+.modal__close {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.92);
+  color: #0a0a0b;
+  box-shadow: 0 1px 2px rgb(10 10 11 / 0.06), 0 1px 3px rgb(10 10 11 / 0.08);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.modal__close:hover {
+  background: #f1f2f4;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+}
+
+@keyframes sheetIn {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+}
+
+.chip--light {
+  background: #ffffff;
+  color: #0a0a0b;
+}
+
+.chip--blue {
+  background: #1f5bff;
+  color: #ffffff;
+}

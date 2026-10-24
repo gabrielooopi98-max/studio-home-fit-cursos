@@ -1,0 +1,95 @@
+/* =========================================================
+   Detalhes das seções brancas: campos de pontos saindo dos cantos
+   (superior esquerdo e inferior direito) e setas da marca em contorno.
+   Tudo fica atrás do conteúdo.
+   ========================================================= */
+.problem,
+.courses,
+.faq {
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.problem::before,
+.problem::after,
+.courses::before,
+.courses::after,
+.pricing::before,
+.pricing::after,
+.faq::before,
+.faq::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 440px;
+  height: 320px;
+  pointer-events: none;
+  background: url('../../imagens/pontos.svg') repeat;
+  animation: dotsFlow 6s linear infinite;
+}
+
+/* Campo que nasce no canto superior esquerdo e some em direção ao conteúdo */
+.problem::before,
+.courses::before,
+.pricing::before,
+.faq::before {
+  top: 0;
+  left: 0;
+  mask-image: linear-gradient(135deg, #000, transparent 72%);
+}
+
+/* Campo que nasce no canto inferior direito */
+.problem::after,
+.courses::after,
+.pricing::after,
+.faq::after {
+  right: 0;
+  bottom: 0;
+  mask-image: linear-gradient(315deg, #000, transparent 72%);
+}
+
+/* Os pontos deslizam devagar na diagonal; 18px = tamanho do módulo, então o loop é contínuo */
+@keyframes dotsFlow {
+  to {
+    background-position: 18px 18px;
+  }
+}
+
+/* Setas abaixo do botão, apontando para os cards / perguntas */
+.problem__intro::after,
+.faq__intro::after {
+  content: '';
+  display: block;
+  width: 200px;
+  aspect-ratio: 368 / 288;
+  margin-top: 56px;
+  background: url('../../imagens/setas-contorno.svg') center / contain no-repeat;
+}
+
+.faq__intro::after {
+  width: 240px;
+  margin-top: 64px;
+}
+
+@media (max-width: 980px) {
+
+  .problem__intro::after,
+  .faq__intro::after {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .problem::before,
+  .problem::after,
+  .courses::before,
+  .courses::after,
+  .pricing::before,
+  .pricing::after,
+  .faq::before,
+  .faq::after {
+    width: 240px;
+    height: 180px;
+  }
+}

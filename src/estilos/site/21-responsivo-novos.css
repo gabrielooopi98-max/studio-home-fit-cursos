@@ -1,0 +1,80 @@
+/* =========================================================
+   Responsivo — novos componentes
+   ========================================================= */
+@media (max-width: 980px) {
+  .secure-bar__badges {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .co {
+    grid-template-columns: 1fr;
+  }
+
+  .stepper__item:not(:last-child)::after {
+    min-width: 18px;
+  }
+
+  .co__summary {
+    border-left: 0;
+    border-top: 1px solid #e4e6ea;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal {
+    padding: 0;
+    place-items: end center;
+  }
+
+  .modal__panel {
+    max-height: 94dvh;
+    border-radius: 22px 22px 0 0;
+    animation-name: sheetIn;
+  }
+
+  .co__main {
+    padding: 28px 20px;
+  }
+
+  .co__head h2 {
+    font-size: 2rem;
+    padding-right: 48px;
+  }
+
+  .stepper__label {
+    display: none;
+  }
+
+  .stepper__item.is-current .stepper__label {
+    display: inline;
+  }
+
+  .co__row {
+    grid-template-columns: 1fr;
+  }
+
+  .co__actions {
+    flex-direction: column-reverse;
+  }
+
+  .co__pay-btn {
+    white-space: normal;
+    text-align: center;
+  }
+
+  .co__summary {
+    padding: 28px 20px;
+  }
+
+  .secure-bar {
+    padding: 24px 20px;
+  }
+
+  .secure-bar__badges {
+    grid-template-columns: 1fr;
+  }
+
+  .toast {
+    flex-wrap: wrap;
+  }
+}

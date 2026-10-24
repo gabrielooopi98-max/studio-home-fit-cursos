@@ -1,0 +1,10 @@
+# Configuração do Supabase CLI para publicar as Edge Functions deste projeto.
+project_id = "ouxmqebhjtbqiwdihyvq"
+
+# O login é conferido dentro da função (criar-pagamento) e o Mercado Pago não manda token de usuário
+# (webhook-mercadopago): por isso a checagem automática de JWT fica desligada nas duas.
+[functions.criar-pagamento]
+verify_jwt = false
+
+[functions.webhook-mercadopago]
+verify_jwt = false

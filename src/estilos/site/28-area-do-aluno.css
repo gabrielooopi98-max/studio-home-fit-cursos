@@ -1,0 +1,798 @@
+/* =========================================================
+   Área do aluno ("Meus cursos"): botão no header, biblioteca
+   de cursos comprados e player das aulas
+   ========================================================= */
+
+/*
+  Botão duplo na cápsula do header: [▶ Meus cursos | perfil].
+  O perfil é "entrar" para visitantes e as iniciais (que abrem o menu da conta) para quem está logado.
+*/
+.header__conta {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 999px;
+  background: #ffffff;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s;
+}
+
+.header__account {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 12px 0 11px;
+  border-radius: 999px;
+  color: #0a0a0b;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+
+/* azul que preenche o botão da esquerda para a direita no hover */
+.header__account::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  background: #1f5bff;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.header__account svg {
+  color: #1f5bff;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.25s;
+}
+
+/* círculo do perfil, dentro do botão branco */
+.header__perfil {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: #0a0a0b;
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s,
+    color 0.25s;
+}
+
+.account__avatar.header__perfil {
+  width: 32px;
+  height: 32px;
+  background: #1f5bff;
+  color: #ffffff;
+  font-size: 0.7rem;
+}
+
+/* na área do aluno o botão fica azul */
+.header__conta.is-active {
+  background: #1f5bff;
+}
+
+.header__conta.is-active .header__account,
+.header__conta.is-active .header__account svg {
+  color: #ffffff;
+}
+
+.header__conta.is-active .header__perfil {
+  background: rgb(255 255 255 / 0.2);
+  color: #ffffff;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header__conta:hover {
+    box-shadow: 0 10px 24px -12px rgb(31 91 255 / 0.9);
+  }
+
+  .header__conta:not(.is-active) .header__account:hover {
+    color: #ffffff;
+  }
+
+  .header__conta:not(.is-active) .header__account:hover::before {
+    transform: scaleX(1);
+  }
+
+  .header__account:hover svg {
+    color: #ffffff;
+    transform: translateX(2px) scale(1.12);
+  }
+
+  .header__perfil:hover {
+    background: #1f5bff;
+    color: #ffffff;
+    box-shadow: 0 0 0 3px rgb(31 91 255 / 0.25);
+  }
+
+  .account__avatar.header__perfil:hover {
+    background: #0a0a0b;
+  }
+}
+
+/*
+  Celular: "Meus cursos" sai da cápsula (é o primeiro botão do menu e do menu da conta).
+  Visitantes entram pelo menu; quem está logado continua vendo as iniciais.
+*/
+@media (max-width: 640px) {
+  .header__conta,
+  .header__conta.is-active {
+    height: auto;
+    padding: 0;
+    background: none;
+  }
+
+  .header__account,
+  .header__perfil--visitante {
+    display: none;
+  }
+
+  .account__avatar.header__perfil {
+    width: 40px;
+    height: 40px;
+    font-size: 0.78rem;
+  }
+}
+
+/* Confirmação do pedido: acessar os cursos ou voltar ao site */
+.co__done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Topo escuro das páginas da área do aluno */
+.member-top {
+  position: relative;
+  padding: calc(76px + 8px) 0 56px;
+  background: url('../../imagens/tinta-textura-clara.svg') center top / 1600px 1000px repeat #0a0a0b;
+  color: #ffffff;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+@media (max-width: 640px) {
+  .member-top {
+    background: url('../../imagens/tinta-textura-clara.svg') center top / 1100px 690px repeat #0a0a0b;
+  }
+}
+
+@media (max-width: 980px) {
+  .member-top {
+    padding: calc(68px + 8px) 0 56px;
+  }
+}
+
+/* Faixa azul na diagonal, como no banner */
+.member-top::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  width: min(38%, 460px);
+  height: 10px;
+  background: #1f5bff;
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.member-top__bar {
+  position: absolute;
+  top: 0;
+  height: 76px;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 980px) {
+  .member-top__bar {
+    height: 68px;
+  }
+}
+
+.member-top__logo img {
+  height: 40px;
+}
+
+.member-top__back {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 8px;
+  margin: 24px 0 28px;
+  color: #9a9fa8;
+  font-size: 0.86rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.member-top__back:hover {
+  color: #ffffff;
+}
+
+.member-top__title {
+  margin-top: 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.member-top__title--sm {
+  margin-top: 8px;
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem);
+}
+
+.member-top__tag {
+  color: #5281ff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.member-top__lead {
+  max-width: 520px;
+  margin-top: 14px;
+  color: #9a9fa8;
+}
+
+.member-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.member-stats li {
+  padding: 10px 16px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.04);
+  color: #c9ccd2;
+  font-size: 0.86rem;
+}
+
+.member-stats strong {
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+/* Corpo claro com os rabiscos suaves, igual às seções do site */
+.member-body {
+  min-height: 50vh;
+  background: url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #f8f9fa;
+}
+
+@media (max-width: 640px) {
+  .member-body {
+    background: url('../../imagens/tinta-textura-suave.svg') center top / 1100px 690px repeat #f8f9fa;
+  }
+}
+
+/* Barra de progresso */
+.progress {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e4e6ea;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f5bff;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Cards dos cursos comprados */
+.mcourses {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.mcourse {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e4e6ea;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px -26px rgb(10 10 11 / 0.35);
+  transition:
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.3s;
+}
+
+.mcourse__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #17181c;
+}
+
+.mcourse__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mcourse__play {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #1f5bff;
+  color: #ffffff;
+  box-shadow: 0 8px 20px -6px rgb(31 91 255 / 0.8);
+}
+
+.mcourse__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 10px;
+  padding: 18px 20px 20px;
+}
+
+.mcourse__tag {
+  color: #1f5bff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mcourse h3 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.mcourse__progress {
+  display: grid;
+  gap: 8px;
+  margin: auto 0 8px;
+  padding-top: 4px;
+}
+
+.mcourse__progress > span {
+  color: #6b7079;
+  font-size: 0.8rem;
+}
+
+.mcourse__progress strong {
+  color: #0a0a0b;
+}
+
+@media (hover: hover) {
+  .mcourse:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 40px -26px rgb(31 91 255 / 0.5);
+  }
+
+  .mcourse:hover .mcourse__media img {
+    transform: scale(1.05);
+  }
+}
+
+/* Sem cursos / curso bloqueado */
+.member-empty {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  border: 1px solid #e4e6ea;
+  border-radius: 24px;
+  background: #ffffff;
+  text-align: center;
+}
+
+.member-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 4px;
+  background: #1f5bff;
+  color: #ffffff;
+  transform: skewX(-10deg);
+  box-shadow: 4px 4px 0 #0a0a0b;
+}
+
+.member-empty__icon svg {
+  transform: skewX(10deg);
+}
+
+.member-empty h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.member-empty p {
+  margin-bottom: 8px;
+  color: #6b7079;
+}
+
+/* Player: vídeo à esquerda, módulos e aulas à direita */
+.player {
+  padding: 40px 0 96px;
+  background: #f8f9fa;
+}
+
+.player__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 28px;
+  align-items: start;
+}
+
+.player__main {
+  scroll-margin-top: calc(76px + 12px);
+}
+
+@media (max-width: 980px) {
+  .player__main {
+    scroll-margin-top: calc(68px + 12px);
+  }
+}
+
+.video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #0a0a0b;
+  box-shadow: 0 30px 60px -36px rgb(10 10 11 / 0.6);
+}
+
+.video iframe,
+.video video,
+.video > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  object-fit: cover;
+}
+
+.video video {
+  object-fit: contain;
+}
+
+.video--soon > img {
+  filter: grayscale(1) brightness(0.35);
+}
+
+.video__soon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.video__soon-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: #1f5bff;
+  box-shadow: 0 0 0 8px rgb(31 91 255 / 0.25);
+}
+
+.video__soon strong {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.video__soon > span:last-child {
+  max-width: 360px;
+  color: #c9ccd2;
+  font-size: 0.9rem;
+}
+
+.player__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 24px;
+  margin-top: 20px;
+  padding: 22px 24px;
+  border: 1px solid #e4e6ea;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.player__module {
+  color: #1f5bff;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.player__title {
+  margin-top: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.player__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.player__nav {
+  display: flex;
+  gap: 8px;
+}
+
+.btn--done {
+  background: #e6f7f0;
+  border-color: #bfe8d5;
+  color: #0f7d48;
+}
+
+/* Lista lateral */
+.player__side {
+  position: sticky;
+  top: calc(76px + 12px);
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 76px - 24px);
+  overflow: hidden;
+  border: 1px solid #e4e6ea;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+@media (max-width: 980px) {
+  .player__side {
+    top: calc(68px + 12px);
+    max-height: calc(100vh - 68px - 24px);
+  }
+}
+
+.player__progress {
+  display: grid;
+  gap: 10px;
+  padding: 20px 22px;
+  border-bottom: 1px solid #e4e6ea;
+}
+
+.player__progress > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.player__progress strong {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.player__progress span {
+  color: #6b7079;
+  font-size: 0.82rem;
+}
+
+.player__modules {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.pmod + .pmod {
+  border-top: 1px solid #f1f2f4;
+}
+
+.pmod__title {
+  display: grid;
+  gap: 2px;
+  padding: 16px 22px 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.pmod__title span {
+  color: #1f5bff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pmod__title small {
+  color: #9a9fa8;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.pmod__lessons {
+  padding: 0 10px 12px;
+}
+
+.plesson {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #33363d;
+  font-size: 0.88rem;
+  text-align: left;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.plesson__status {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid #c9ccd2;
+  color: #9a9fa8;
+}
+
+.plesson__title {
+  flex: 1;
+}
+
+.plesson__time {
+  color: #9a9fa8;
+  font-size: 0.76rem;
+}
+
+.plesson.is-done .plesson__status {
+  border-color: #0f9d58;
+  background: #0f9d58;
+  color: #ffffff;
+}
+
+.plesson.is-current {
+  background: #edf1ff;
+  color: #0a0a0b;
+  font-weight: 700;
+}
+
+.plesson.is-current .plesson__status {
+  border-color: #1f5bff;
+  background: #1f5bff;
+  color: #ffffff;
+}
+
+@media (hover: hover) {
+  .plesson:not(.is-current):hover {
+    background: #f1f2f4;
+  }
+}
+
+@media (max-width: 980px) {
+  .player__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .player__side {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .member-top {
+    padding-bottom: 40px;
+  }
+
+  .member-top__logo img {
+    height: 34px;
+  }
+
+  .member-top__back {
+    margin: 16px 0 20px;
+  }
+
+  .mcourses {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .member-empty {
+    padding: 36px 20px;
+  }
+
+  .player {
+    padding: 0 0 72px;
+  }
+
+  /* vídeo de ponta a ponta no celular */
+  .player__grid {
+    padding: 0;
+    gap: 16px;
+  }
+
+  .video {
+    border-radius: 0;
+  }
+
+  .player__info,
+  .player__side {
+    margin: 0 16px;
+  }
+
+  .player__info {
+    margin-top: 0;
+    padding: 18px;
+  }
+
+  .player__title {
+    font-size: 1.2rem;
+  }
+
+  .player__actions,
+  .player__actions > .btn {
+    width: 100%;
+  }
+
+  .player__nav {
+    width: 100%;
+  }
+
+  .player__nav .btn--primary {
+    flex: 1;
+  }
+}

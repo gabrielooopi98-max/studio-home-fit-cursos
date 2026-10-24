@@ -1,0 +1,110 @@
+/* =========================================================
+   Footer
+   ========================================================= */
+.footer {
+  background: #0a0a0b;
+  color: #9a9fa8;
+  padding-top: 80px;
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+  gap: 48px;
+  padding-bottom: 56px;
+}
+
+.footer__brand p {
+  margin: 20px 0 24px;
+  max-width: 340px;
+  font-size: 0.93rem;
+}
+
+.socials {
+  display: flex;
+  gap: 10px;
+}
+
+.socials a {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  color: #ffffff;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.socials a:hover {
+  background: #1f5bff;
+  border-color: #1f5bff;
+}
+
+.footer h4 {
+  color: #ffffff;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 18px;
+}
+
+.footer ul {
+  display: grid;
+  gap: 10px;
+  font-size: 0.93rem;
+}
+
+.footer ul a {
+  transition: color 0.2s;
+  word-break: break-word;
+}
+
+.footer ul a:hover {
+  color: #ffffff;
+}
+
+.footer__secure {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c9ccd2;
+  border: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.footer__secure svg {
+  color: #5281ff;
+}
+
+/* links dos Termos de Uso e da Política de Privacidade */
+.footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+
+.footer__legal a {
+  color: #9a9fa8;
+  transition: color 0.2s;
+}
+
+.footer__legal a:hover {
+  color: #ffffff;
+}
+
+.footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding-top: 24px;
+  padding-bottom: 32px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  font-size: 0.82rem;
+  color: #6b7079;
+}

@@ -1,0 +1,616 @@
+/* =========================================================
+   Login / cadastro: metade com a academia, metade com o formulário
+   ========================================================= */
+.auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 560px);
+  min-height: 100svh;
+  background: #f8f9fa;
+}
+
+/*
+  Lado da marca: a fachada do Studio HomeFit em cores, enquadrada na placa.
+  Um degradê escuro de baixo para cima deixa o texto legível; na divisa com o
+  formulário, a faixa azul diagonal e o filete branco, iguais aos do banner.
+*/
+.auth__side {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #0a0a0b;
+  color: #ffffff;
+}
+
+.auth__bg {
+  position: absolute;
+  z-index: -3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* placa "Studio HomeFit" no terço de cima */
+  object-position: 62% 24%;
+  filter: saturate(0.9) contrast(1.05);
+  animation: authFoto 1.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.auth__sombra {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(to top, rgb(10 10 11 / 0.96) 0%, rgb(10 10 11 / 0.8) 30%, rgb(10 10 11 / 0.25) 62%, rgb(10 10 11 / 0.1) 100%),
+    linear-gradient(to right, rgb(10 10 11 / 0.45), transparent 55%);
+}
+
+/* faixa azul e filete branco na diagonal, na borda com o formulário */
+.auth__faixa {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.auth__faixa::before,
+.auth__faixa::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.auth__faixa::before {
+  background: #1f5bff;
+  clip-path: polygon(calc(100% - 22px) 0, 100% 0, 100% 100%, calc(100% - 64px) 100%);
+}
+
+.auth__faixa::after {
+  background: rgb(255 255 255 / 0.55);
+  clip-path: polygon(calc(100% - 34px) 0, calc(100% - 32px) 0, calc(100% - 74px) 100%, calc(100% - 76px) 100%);
+}
+
+/* rabiscos claros (textura das seções escuras), só na parte escura de baixo */
+.auth__rabiscos {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: url('../imagens/tinta-textura-clara.svg') center bottom / 1100px 690px repeat;
+  -webkit-mask-image: linear-gradient(to top, #000 0%, #000 25%, transparent 60%);
+  mask-image: linear-gradient(to top, #000 0%, #000 25%, transparent 60%);
+  pointer-events: none;
+  animation: authAparece 1.2s ease 0.4s backwards;
+}
+
+/* formas geométricas pintadas pela cor de fundo, recortadas pelo desenho (máscara) */
+.auth__forma {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  -webkit-mask: center / contain no-repeat;
+  mask: center / contain no-repeat;
+  animation: authAparece 1s ease 0.6s backwards;
+}
+
+/* canto azul em retícula no alto à esquerda (o desenho é do canto direito: espelhado) */
+.auth__forma--canto {
+  top: 0;
+  left: 0;
+  width: 170px;
+  height: 170px;
+  background: #1f5bff;
+  -webkit-mask-image: url('../imagens/forma-canto.svg');
+  mask-image: url('../imagens/forma-canto.svg');
+  transform: scaleX(-1);
+}
+
+/* coluna de quadradinhos azuis na borda esquerda */
+.auth__forma--quadrados {
+  top: 40%;
+  left: 26px;
+  width: 10px;
+  height: 90px;
+  background: #1f5bff;
+  -webkit-mask-image: url('../imagens/forma-quadrados.svg');
+  mask-image: url('../imagens/forma-quadrados.svg');
+}
+
+/* grade de pontos brancos e X azul perto do título */
+.auth__forma--pontos {
+  bottom: 268px;
+  left: min(520px, 62%);
+  width: 44px;
+  height: 44px;
+  background: rgb(255 255 255 / 0.45);
+  -webkit-mask-image: url('../imagens/forma-pontos.svg');
+  mask-image: url('../imagens/forma-pontos.svg');
+}
+
+.auth__forma--x {
+  bottom: 336px;
+  left: min(592px, 70%);
+  width: 22px;
+  height: 22px;
+  background: #1f5bff;
+  -webkit-mask-image: url('../imagens/forma-x.svg');
+  mask-image: url('../imagens/forma-x.svg');
+}
+
+/* X grande só em contorno, cortado pela base, perto da faixa azul */
+.auth__forma--xo {
+  right: 96px;
+  bottom: -70px;
+  width: 230px;
+  height: 230px;
+  background: rgb(255 255 255 / 0.16);
+  -webkit-mask-image: url('../imagens/forma-x-contorno.svg');
+  mask-image: url('../imagens/forma-x-contorno.svg');
+}
+
+/* texto na base, sobre a parte escura do degradê */
+.auth__pitch {
+  position: absolute;
+  left: 56px;
+  right: 110px;
+  bottom: 56px;
+  max-width: 560px;
+  animation: authSobe 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s backwards;
+}
+
+.auth__kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #c9ccd2;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.auth__xxx {
+  display: flex;
+  gap: 1px;
+  color: #1f5bff;
+}
+
+.auth__headline {
+  margin: 14px 0 0;
+  font-family: 'Montserrat', sans-serif;
+  font-size: clamp(2.4rem, 3.8vw, 3.8rem);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.auth__headline span {
+  color: #1f5bff;
+}
+
+@keyframes authFoto {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes authAparece {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes authSobe {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* Lado do formulário */
+/* fundo claro com os rabiscos, a mesma textura das seções claras do site */
+.auth__main {
+  display: flex;
+  flex-direction: column;
+  padding: 28px clamp(20px, 5vw, 56px) 40px;
+  background: url('../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #f8f9fa;
+}
+
+.auth__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: auto;
+}
+
+.auth__logo img {
+  height: 40px;
+}
+
+.auth__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #50545c;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.auth__back:hover {
+  color: #0a0a0b;
+}
+
+.auth__card {
+  width: 100%;
+  max-width: 440px;
+  margin: 32px auto auto;
+  padding: 32px;
+  border: 1px solid #e4e6ea;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 30px 60px -40px rgb(10 10 11 / 0.4);
+}
+
+.auth__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 24px;
+  padding: 4px;
+  border-radius: 12px;
+  background: #f1f2f4;
+}
+
+.auth__tabs a {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  border-radius: 9px;
+  color: #50545c;
+  font-size: 0.9rem;
+  font-weight: 700;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.auth__tabs a.is-active {
+  background: #ffffff;
+  color: #0a0a0b;
+  box-shadow: 0 1px 2px rgb(10 10 11 / 0.06), 0 1px 3px rgb(10 10 11 / 0.08);
+}
+
+.auth__title {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.auth__subtitle {
+  margin: 8px 0 22px;
+  color: #6b7079;
+}
+
+.auth__secure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+  color: #6b7079;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.auth__secure svg {
+  flex-shrink: 0;
+  color: #0f9d58;
+}
+
+/* Formulário */
+.aform {
+  display: grid;
+  gap: 16px;
+}
+
+.aform--done {
+  justify-items: center;
+  text-align: center;
+}
+
+.aform--done h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.aform--done p {
+  color: #50545c;
+}
+
+.aform--loading {
+  place-items: center;
+  min-height: 160px;
+}
+
+.adone__icon {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: #edf1ff;
+  color: #1f5bff;
+}
+
+.adone__icon--warn {
+  background: #fff4dc;
+  color: #8a5300;
+}
+
+.afield {
+  display: grid;
+  gap: 6px;
+}
+
+.afield label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.afield__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.afield__control > svg {
+  position: absolute;
+  left: 14px;
+  color: #9a9fa8;
+  pointer-events: none;
+}
+
+.afield__control input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px 0 44px;
+  border: 1.5px solid #e4e6ea;
+  border-radius: 12px;
+  background: #f8f9fa;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background-color 0.2s;
+}
+
+.afield__control input:focus {
+  border-color: #1f5bff;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgb(31 91 255 / 0.12);
+}
+
+.afield__control:has(.afield__eye) input {
+  padding-right: 52px;
+}
+
+.afield__eye {
+  position: absolute;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: #6b7079;
+}
+
+.afield__eye:hover {
+  background: #f1f2f4;
+  color: #0a0a0b;
+}
+
+.afield--error .afield__control input {
+  border-color: #d92d20;
+  background: #fffafa;
+}
+
+.afield__error {
+  color: #b42318;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.afield__hint {
+  color: #6b7079;
+  font-size: 0.82rem;
+}
+
+.aform__row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -6px;
+}
+
+.aform__row--center {
+  justify-content: center;
+  margin-top: 0;
+}
+
+.aform__row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #1f5bff;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+/* campo contra robôs: fora da tela, sem atrapalhar leitor de tela */
+.aform__trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.acheck {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #50545c;
+  font-size: 0.84rem;
+  cursor: pointer;
+}
+
+.acheck input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: #1f5bff;
+}
+
+.acheck--error span {
+  color: #b42318;
+}
+
+.acheck a {
+  color: #1f5bff;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.anotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.anotice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.anotice--error {
+  background: #fdeceb;
+  color: #b42318;
+}
+
+.anotice--ok {
+  background: #e6f7f0;
+  color: #0f7d48;
+}
+
+.anotice--warn {
+  background: #fff4dc;
+  color: #8a5300;
+}
+
+/* Força da senha */
+.strength {
+  display: grid;
+  gap: 8px;
+  margin-top: -6px;
+}
+
+.strength__bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.strength__bars i {
+  height: 5px;
+  border-radius: 3px;
+  background: #e4e6ea;
+}
+
+.strength__bars--1 i:nth-child(-n + 1) {
+  background: #d92d20;
+}
+
+.strength__bars--2 i:nth-child(-n + 2) {
+  background: #e8a200;
+}
+
+.strength__bars--3 i:nth-child(-n + 3) {
+  background: #1f5bff;
+}
+
+.strength__bars--4 i {
+  background: #0f9d58;
+}
+
+.strength__label {
+  color: #50545c;
+  font-size: 0.8rem;
+}
+
+.strength__rules {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+
+.strength__rules li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7079;
+  font-size: 0.78rem;
+}
+
+.strength__rules li.ok {
+  color: #0f7d48;
+  font-weight: 600;
+}
+
+@media (max-width: 980px) {
+  .auth {
+    grid-template-columns: 1fr;
+  }
+
+  .auth__side {
+    display: none;
+  }
+
+  .auth__card {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth__main {
+    padding: 18px 14px 28px;
+  }
+
+  .auth__card {
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+
+  .auth__logo img {
+    height: 34px;
+  }
+
+  .strength__rules {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* botão bloqueado (ex.: pausa de segurança): bem visível que não dá para clicar */
+.aform .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 280" width="360" height="280">
+  <!-- camada de trás: azul -->
+  <polygon points="130,20 360,150 130,280" fill="#1c1d70"/>
+  <!-- camada do meio: preta -->
+  <polygon points="65,10 295,140 65,270" fill="#000000"/>
+  <!-- camada da frente: branca -->
+  <polygon points="0,0 230,130 0,260" fill="#ffffff"/>
+</svg>

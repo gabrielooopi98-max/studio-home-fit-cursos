@@ -1,0 +1,13 @@
+/* =========================================================
+   Página 404
+   ========================================================= */
+.notfound__eyebrow {
+  margin-top: 28px;
+}
+
+.notfound__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}

@@ -1,0 +1,36 @@
+/* =========================================================
+   Carrinho: extras
+   ========================================================= */
+.drawer__continue {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #50545c;
+  border-radius: 8px;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.drawer__continue:hover {
+  color: #0a0a0b;
+  background: #f1f2f4;
+}
+
+.drawer__secure {
+  gap: 16px;
+  margin: 12px 0 14px;
+}
+
+.drawer__secure span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.drawer__secure svg {
+  color: #0f9d58;
+}

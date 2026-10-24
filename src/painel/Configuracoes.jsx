@@ -1,0 +1,219 @@
+// Painel > Configurações: pagamentos, modo de teste, Combo Completo e contatos do site.
+import { useState } from 'react'
+import Icone from '../componentes/Icone'
+import { backend } from '../servicos/banco'
+import PrecoEDesconto from './PrecoEDesconto'
+import { fromPricing, pricingErrors, toPricing } from './precos'
+import { useAdmin, useAsync } from './hooks'
+import { Card, ErrorBox, Field, PageHead, Toggle } from './interface'
+
+function validate(s) {
+  const e = {}
+  if (!s.comboTitle.trim()) e.comboTitle = 'Dê um nome ao combo.'
+  const p = pricingErrors(s.comboPricing)
+  if (p.base) e.comboPrice = p.base
+  if (p.discount) e.comboDiscount = p.discount
+  if (!(Number(s.comboInstallments) >= 1 && Number(s.comboInstallments) <= 24)) e.comboInstallments = 'Entre 1 e 24.'
+  if (s.whatsapp && !/^\d{12,13}$/.test(s.whatsapp)) e.whatsapp = 'Só números, com 55 + DDD (ex.: 5564999258218).'
+  for (const k of ['instagram', 'youtube']) if (s[k] && !/^https:\/\/\S+$/.test(s[k])) e[k] = 'Cole o link completo, começando com https://'
+  if (s.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.contactEmail)) e.contactEmail = 'E-mail inválido.'
+  return e
+}
+
+// preço do combo no formulário: original + % de desconto
+const toForm = (settings) => ({
+  ...settings,
+  featuresText: settings.comboFeatures.join('\n'),
+  comboPricing: toPricing(settings.comboPrice, settings.comboOldPrice),
+})
+
+function SettingsForm({ initial }) {
+  const { notify, refreshSite, setSettings } = useAdmin()
+  const [s, setS] = useState(() => toForm(initial))
+  const [saved, setSaved] = useState(s)
+  const [touched, setTouched] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const errors = validate(s)
+  const show = (k) => (touched ? errors[k] : undefined)
+  const set = (k) => (e) => setS((x) => ({ ...x, [k]: e.target.value }))
+  const dirty = JSON.stringify(s) !== JSON.stringify(saved)
+
+  const save = async (e) => {
+    e?.preventDefault()
+    setTouched(true)
+    if (Object.keys(errors).length) {
+      notify('Confira os campos destacados.', 'error')
+      return
+    }
+    setBusy(true)
+    try {
+      const result = await backend.admin.saveSettings({
+        ...s,
+        comboTitle: s.comboTitle.trim(),
+        comboDescription: s.comboDescription.trim(),
+        comboPrice: fromPricing(s.comboPricing).price,
+        comboOldPrice: fromPricing(s.comboPricing).oldPrice,
+        comboInstallments: Number(s.comboInstallments),
+        comboFeatures: s.featuresText
+          .split('\n')
+          .map((f) => f.trim())
+          .filter(Boolean)
+          .slice(0, 12),
+        whatsapp: s.whatsapp.trim(),
+        instagram: s.instagram.trim(),
+        youtube: s.youtube.trim(),
+        contactEmail: s.contactEmail.trim(),
+      })
+      const next = toForm(result)
+      setS(next)
+      setSaved(next)
+      setSettings(result)
+      setTouched(false)
+      refreshSite()
+      notify('Configurações salvas.')
+    } catch (err) {
+      notify(err.message, 'error')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="settings">
+      <Card title="Pagamentos" subtitle="Como as compras são cobradas.">
+        <div className={`test-mode ${s.testMode ? 'is-on' : ''}`}>
+          <Toggle
+            checked={s.testMode}
+            onChange={(v) => setS((x) => ({ ...x, testMode: v }))}
+            label={s.testMode ? 'Modo de teste LIGADO' : 'Modo de teste desligado'}
+          />
+          <p>
+            {s.testMode ? (
+              <>
+                <Icone name="alert" size={16} /> <strong>Qualquer pessoa logada consegue "comprar" sem pagar.</strong> Use só para
+                testar o site e o painel. Desligue antes de divulgar.
+              </>
+            ) : (
+              <>As compras vão para o Mercado Pago (Pix, cartão e boleto). O acesso é liberado quando o pagamento é aprovado.</>
+            )}
+          </p>
+        </div>
+        <details className="howto">
+          <summary>
+            <Icone name="key" size={16} /> Como ligar o Mercado Pago (uma vez só)
+          </summary>
+          <ol>
+            <li>
+              No Mercado Pago: <strong>Seu negócio &gt; Configurações &gt; Credenciais</strong>. Copie o <em>Access Token</em> de produção.
+            </li>
+            <li>
+              No Supabase: <strong>Edge Functions &gt; Secrets</strong>. Crie <code>MP_ACCESS_TOKEN</code> com o token e{' '}
+              <code>SITE_URL</code> com o endereço do site (ex.: https://studiohomefit.com.br).
+            </li>
+            <li>
+              Publique as funções <code>criar-pagamento</code> e <code>webhook-mercadopago</code> (passo a passo no arquivo{' '}
+              <code>SUPABASE.md</code> do projeto).
+            </li>
+            <li>
+              No Mercado Pago, em <strong>Webhooks</strong>, cadastre a URL da função <code>webhook-mercadopago</code> e copie a{' '}
+              <em>assinatura secreta</em> para o secret <code>MP_WEBHOOK_SECRET</code>.
+            </li>
+          </ol>
+        </details>
+      </Card>
+
+      <Card title="Combo Completo" subtitle="O plano com todos os cursos, na seção Planos do site.">
+        <div className="xform">
+          <Toggle
+            checked={s.comboActive}
+            onChange={(v) => setS((x) => ({ ...x, comboActive: v }))}
+            label={s.comboActive ? 'Combo à venda no site' : 'Combo escondido do site'}
+          />
+          <Field label="Nome do combo" error={show('comboTitle')}>
+            {(p) => <input {...p} value={s.comboTitle} maxLength={80} onChange={set('comboTitle')} />}
+          </Field>
+          <Field label="Descrição">
+            {(p) => <textarea {...p} rows={3} value={s.comboDescription} maxLength={400} onChange={set('comboDescription')} />}
+          </Field>
+          <PrecoEDesconto
+            label="Preço original do combo"
+            hint="Valor sem desconto."
+            value={s.comboPricing}
+            onChange={(comboPricing) => setS((x) => ({ ...x, comboPricing }))}
+            errors={{ base: show('comboPrice'), discount: show('comboDiscount') }}
+            installments={Number(s.comboInstallments)}
+          />
+          <Field label="Parcelas no cartão" hint="Em até quantas vezes dá para pagar no cartão." error={show('comboInstallments')}>
+            {(p) => (
+              <input
+                {...p}
+                type="number"
+                min="1"
+                max="24"
+                value={s.comboInstallments}
+                onChange={set('comboInstallments')}
+                className="xinput--short"
+              />
+            )}
+          </Field>
+          <Field label="O que está incluso" hint='Um item por linha. "Todos os cursos" vira "Todos os N cursos" automaticamente.'>
+            {(p) => <textarea {...p} rows={6} value={s.featuresText} onChange={set('featuresText')} />}
+          </Field>
+        </div>
+      </Card>
+
+      <Card title="Contatos e redes" subtitle="Aparecem no rodapé, no botão de WhatsApp e no menu. Em branco = escondido.">
+        <div className="xform">
+          <div className="xform__row">
+            <Field label="WhatsApp" hint="Só números: 55 + DDD + número." error={show('whatsapp')}>
+              {(p) => (
+                <input
+                  {...p}
+                  inputMode="numeric"
+                  value={s.whatsapp}
+                  onChange={(e) => setS((x) => ({ ...x, whatsapp: e.target.value.replace(/\D/g, '').slice(0, 13) }))}
+                />
+              )}
+            </Field>
+            <Field label="E-mail de contato" error={show('contactEmail')}>
+              {(p) => <input {...p} type="email" value={s.contactEmail} onChange={set('contactEmail')} />}
+            </Field>
+          </div>
+          <div className="xform__row">
+            <Field label="Instagram" error={show('instagram')}>
+              {(p) => <input {...p} value={s.instagram} placeholder="https://instagram.com/..." onChange={set('instagram')} />}
+            </Field>
+            <Field label="YouTube" error={show('youtube')}>
+              {(p) => <input {...p} value={s.youtube} placeholder="https://youtube.com/@..." onChange={set('youtube')} />}
+            </Field>
+          </div>
+        </div>
+      </Card>
+
+      <div className={`savebar ${dirty ? 'is-visible' : ''}`}>
+        <span>
+          <Icone name={dirty ? 'alert' : 'checkCircle'} size={17} /> {dirty ? 'Alterações não salvas' : 'Tudo salvo'}
+        </span>
+        {dirty && (
+          <button type="button" className="btn btn--outline btn--sm" onClick={() => setS(saved)} disabled={busy}>
+            Descartar
+          </button>
+        )}
+        <button type="submit" className="btn btn--primary" disabled={busy || !dirty}>
+          {busy && <span className="spinner" aria-hidden="true" />} Salvar configurações
+        </button>
+      </div>
+    </form>
+  )
+}
+
+export default function Configuracoes() {
+  const res = useAsync(() => backend.admin.getSettings(), [])
+  return (
+    <>
+      <PageHead title="Configurações" subtitle="Pagamentos, combo e contatos do site." />
+      <ErrorBox error={res.error} onRetry={res.reload} />
+      {res.data ? <SettingsForm initial={res.data} /> : !res.error && <div className="xtable-skeleton xtable-skeleton--tall" />}
+    </>
+  )
+}

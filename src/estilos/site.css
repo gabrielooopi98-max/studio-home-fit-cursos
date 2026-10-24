@@ -1,0 +1,35 @@
+/* Estilos do site (página inicial, carrinho, compra e área do aluno).
+   Cada parte fica num arquivo, na ordem em que é aplicada: o número na frente garante a ordem. */
+@import './site/01-base.css';
+@import './site/02-botoes.css';
+@import './site/03-cabecalho.css';
+@import './site/04-banner.css';
+@import './site/05-faixa-de-beneficios.css';
+@import './site/06-problema.css';
+@import './site/07-cursos.css';
+@import './site/08-metodo.css';
+@import './site/09-planos.css';
+@import './site/10-duvidas.css';
+@import './site/11-rodape.css';
+@import './site/12-carrinho.css';
+@import './site/13-flutuantes.css';
+@import './site/14-responsivo.css';
+@import './site/15-selos-de-seguranca.css';
+@import './site/16-janela.css';
+@import './site/17-pagina-do-curso.css';
+@import './site/18-finalizar-compra.css';
+@import './site/19-carrinho-extras.css';
+@import './site/20-avisos-e-whatsapp.css';
+@import './site/21-responsivo-novos.css';
+@import './site/22-identidade-visual.css';
+@import './site/23-hovers.css';
+@import './site/24-detalhes-pontos.css';
+@import './site/25-detalhes-rabiscos.css';
+@import './site/26-professores.css';
+@import './site/27-movimento-reduzido.css';
+@import './site/28-area-do-aluno.css';
+@import './site/29-pagina-404.css';
+@import './site/30-celular-toque.css';
+@import './site/31-conta-login-pedidos.css';
+@import './site/32-documentos-legais.css';
+@import './site/33-esqueletos.css';

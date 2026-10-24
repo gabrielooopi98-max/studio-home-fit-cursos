@@ -1,0 +1,17 @@
+/* =========================================================
+   Celular: áreas de toque com pelo menos ~40px de altura
+   ========================================================= */
+.problem__stat-link {
+  min-height: 42px;
+  padding-inline: 16px;
+}
+
+@media (max-width: 640px) {
+  .course__foot .btn {
+    --h: 40px;
+  }
+
+  .member-top__title {
+    font-size: clamp(2rem, 10vw, 2.6rem);
+  }
+}

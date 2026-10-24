@@ -1,0 +1,327 @@
+/* =========================================================
+   Professores: foto da dupla num painel azul à esquerda, perfis
+   dos professores e selos de confiança à direita
+   ========================================================= */
+
+/* Fundo preto liso com os rabiscos claros e uma faixa azul na diagonal (como no banner) */
+.team {
+  background: url('../../imagens/tinta-textura-clara.svg') center top / 1600px 1000px repeat #0c0d10;
+}
+
+@media (max-width: 640px) {
+  .team {
+    background: url('../../imagens/tinta-textura-clara.svg') center top / 1100px 690px repeat #0c0d10;
+  }
+}
+
+.team .section__head {
+  position: relative;
+  z-index: 1;
+}
+
+.team__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+/* Painel da foto */
+.team__visual {
+  position: relative;
+  min-height: 600px;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #0a0a0b;
+  isolation: isolate;
+}
+
+/* Fachada do Studio ao fundo, em preto e branco e escurecida como no banner */
+.team__bg {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 72% 30%;
+  filter: grayscale(1) contrast(1.1) brightness(0.5);
+}
+
+/* moldura fina interna, como num pôster */
+.team__visual::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  inset: 14px;
+  border: 1px solid rgb(255 255 255 / 0.28);
+  border-radius: calc(24px - 8px);
+  pointer-events: none;
+}
+
+/* filete azul na diagonal atrás da dupla, como a borda do painel do banner */
+.team__visual::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -10%;
+  right: -10%;
+  bottom: 30%;
+  height: 10px;
+  background: #1f5bff;
+  transform: skewY(-12deg);
+  transform-origin: left;
+}
+
+/* retícula branca no canto */
+.team__corner {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  width: 170px;
+  height: 170px;
+  background: #ffffff;
+  opacity: 0.22;
+  -webkit-mask: url('../../imagens/forma-canto.svg') center / contain no-repeat;
+  mask: url('../../imagens/forma-canto.svg') center / contain no-repeat;
+}
+
+.team__duo {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: auto;
+  height: 90%;
+  max-width: none;
+  translate: -50% 0;
+  filter: drop-shadow(0 24px 30px rgb(0 0 0 / 0.45));
+}
+
+/* Assinatura do Studio na base da foto */
+.team__caption {
+  position: absolute;
+  z-index: 3;
+  left: 28px;
+  right: 28px;
+  bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  background: rgb(10 10 11 / 0.82);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+}
+
+.team__caption img {
+  width: auto;
+  height: 32px;
+}
+
+.team__caption span {
+  color: #c9ccd2;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+/* Coluna dos perfis */
+.team__people {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* Ficha do professor: tipografia no lugar de foto, selos e pílulas */
+.trainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 30px 32px;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: 16px;
+  background: #141518;
+  transition: border-color 0.3s;
+}
+
+.trainer__name {
+  margin: 0 0 6px;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.1;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.trainer__meta {
+  color: #9a9fa8;
+  font-size: 0.9rem;
+}
+
+.trainer__meta span {
+  color: #e4e6ea;
+  font-weight: 600;
+}
+
+.trainer__bio {
+  max-width: 58ch;
+  margin: 16px 0 20px;
+  color: #c9ccd2;
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+.trainer__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.trainer__spec {
+  color: #e4e6ea;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.trainer__spec strong {
+  display: block;
+  margin-bottom: 2px;
+  color: #6b7079;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.trainer__social {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: color 0.2s;
+}
+
+/* Credenciais da equipe: lista simples com ✓ */
+.team__trust {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px 24px;
+  padding: 8px 4px 0;
+}
+
+.team__trust li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.team__trust svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: #5281ff;
+}
+
+.team__trust strong {
+  display: block;
+  color: #ffffff;
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.team__trust span {
+  display: block;
+  margin-top: 2px;
+  color: #9a9fa8;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+@media (hover: hover) {
+  .trainer:hover {
+    border-color: rgb(255 255 255 / 0.2);
+  }
+
+  .trainer__social:hover {
+    color: #5281ff;
+  }
+}
+
+/* Tablet: foto em cima, perfis lado a lado */
+@media (max-width: 1100px) {
+  .team__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .team__visual {
+    min-height: 520px;
+  }
+
+  .team__people {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team__trust {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Celular: tudo empilhado */
+@media (max-width: 640px) {
+  .team__visual {
+    min-height: 400px;
+  }
+
+  .team__visual::before {
+    inset: 10px;
+  }
+
+  .team__corner {
+    width: 110px;
+    height: 110px;
+  }
+
+  .team__caption {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
+    padding: 12px 14px;
+  }
+
+  .team__caption img {
+    height: 26px;
+  }
+
+  .team__caption span {
+    font-size: 0.66rem;
+  }
+
+  .team__people,
+  .team__trust {
+    grid-template-columns: 1fr;
+  }
+
+  .trainer {
+    padding: 24px 20px;
+  }
+
+  .trainer__name {
+    font-size: 1.3rem;
+  }
+}

@@ -1,0 +1,411 @@
+/* =========================================================
+   Página do curso (#/curso/<link>): topo com a foto do curso,
+   descrição, módulos com as aulas, o que está incluso e a
+   caixa de compra (fixa ao lado no computador, barra embaixo
+   no celular)
+   ========================================================= */
+
+/* Topo: a foto do curso ao fundo, escurecida, sobre o preto do .member-top */
+.curso-topo {
+  padding-bottom: 64px;
+}
+
+.curso-topo__foto {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: 0.4;
+  filter: grayscale(0.2);
+}
+
+.curso-topo::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(10 10 11 / 0.95) 0%, rgb(10 10 11 / 0.7) 55%, rgb(10 10 11 / 0.35) 100%);
+}
+
+.curso-topo__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 26px;
+}
+
+.curso-topo__off {
+  padding: 4px 10px;
+  background: #1f5bff;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  transform: skewX(-12deg);
+  box-shadow: 3px 3px 0 #ffffff;
+}
+
+.curso-topo__tag {
+  margin-top: 18px;
+  color: #5281ff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.curso-topo__titulo {
+  max-width: 820px;
+  margin-top: 8px;
+}
+
+.curso-topo__texto {
+  max-width: 620px;
+  margin-top: 14px;
+  color: #c9ccd2;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.curso-topo__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.curso-topo__meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.06);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.curso-topo__meta svg {
+  color: #5281ff;
+}
+
+/* Corpo: conteúdo à esquerda, compra à direita */
+.curso-corpo {
+  background: url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #f8f9fa;
+}
+
+.curso-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 40px;
+  align-items: start;
+}
+
+.curso-main {
+  min-width: 0;
+}
+
+.curso-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 40px 0 16px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.curso-titulo:first-child {
+  margin-top: 0;
+}
+
+.curso-titulo svg {
+  color: #1f5bff;
+}
+
+.curso-desc {
+  color: #33363d;
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+/* Módulos: cada um abre e fecha mostrando as aulas */
+.curso-modulos {
+  display: grid;
+  gap: 10px;
+}
+
+.curso-modulo {
+  border: 1px solid #e4e6ea;
+  border-radius: 14px;
+  background: #ffffff;
+  overflow: hidden;
+  transition:
+    border-color 0.25s,
+    box-shadow 0.25s;
+}
+
+.curso-modulo[open] {
+  border-color: rgb(31 91 255 / 0.35);
+  box-shadow: 0 16px 32px -26px rgb(31 91 255 / 0.6);
+}
+
+.curso-modulo summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.curso-modulo summary::-webkit-details-marker {
+  display: none;
+}
+
+.curso-modulo__n {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #edf1ff;
+  color: #1f5bff;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.curso-modulo[open] .curso-modulo__n {
+  background: #1f5bff;
+  color: #ffffff;
+}
+
+.curso-modulo__nome {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  font-weight: 700;
+}
+
+.curso-modulo__nome small {
+  color: #6b7079;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.curso-modulo__seta {
+  flex: none;
+  color: #6b7079;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.curso-modulo[open] .curso-modulo__seta {
+  transform: rotate(180deg);
+}
+
+.curso-aulas {
+  display: grid;
+  padding: 0 18px 14px 68px;
+}
+
+.curso-aulas li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid #f1f2f4;
+  color: #33363d;
+  font-size: 0.92rem;
+}
+
+.curso-aulas li svg {
+  flex: none;
+  color: #1f5bff;
+}
+
+.curso-aulas li span {
+  flex: 1;
+}
+
+.curso-aulas em {
+  color: #6b7079;
+  font-size: 0.82rem;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* O que está incluso */
+.curso-inclui {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.curso-inclui li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #e4e6ea;
+  border-radius: 12px;
+  background: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.curso-inclui svg {
+  flex: none;
+  color: #1f5bff;
+}
+
+/* Caixa de compra */
+.buybox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 24px 20px;
+  border-radius: 16px;
+  border: 1px solid #e4e6ea;
+  box-shadow: 0 10px 30px -12px rgb(10 10 11 / 0.18);
+  background: #ffffff;
+}
+
+.curso-compra {
+  position: sticky;
+  top: 100px;
+}
+
+.buybox__off {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #edf1ff;
+  color: #1f5bff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.buybox s {
+  color: #9a9fa8;
+  font-size: 0.95rem;
+}
+
+.buybox__price {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.buybox__save {
+  font-size: 0.82rem;
+  color: #6b7079;
+  margin-bottom: 16px;
+}
+
+.buybox .btn + .btn {
+  margin-top: 8px;
+}
+
+.buybox__trust {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 16px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f2f4;
+}
+
+.buybox__trust li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #50545c;
+}
+
+.buybox__trust svg {
+  color: #1f5bff;
+}
+
+.curso-vazio {
+  background: #f8f9fa;
+}
+
+/* Barra de compra do celular (escondida no computador) */
+.curso-barra {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .curso-grade {
+    grid-template-columns: 1fr;
+  }
+
+  .curso-compra {
+    position: static;
+  }
+
+  .curso-barra {
+    position: sticky;
+    z-index: 30;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 20px;
+    border-top: 1px solid #e4e6ea;
+    background: rgb(255 255 255 / 0.97);
+    box-shadow: 0 -12px 30px -18px rgb(10 10 11 / 0.35);
+  }
+
+  .curso-barra > div {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+  }
+
+  .curso-barra s {
+    color: #9a9fa8;
+    font-size: 0.78rem;
+  }
+
+  .curso-barra strong {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+
+  /* o botão do WhatsApp não cobre a barra de compra */
+  body:has(.curso-barra) .whats-float {
+    bottom: 88px;
+  }
+}
+
+@media (max-width: 640px) {
+  .curso-topo {
+    padding-bottom: 44px;
+  }
+
+  .curso-titulo {
+    font-size: 1.1rem;
+  }
+
+  .curso-inclui {
+    grid-template-columns: 1fr;
+  }
+
+  .curso-aulas {
+    padding-left: 18px;
+  }
+}

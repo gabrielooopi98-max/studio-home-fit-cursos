@@ -1,0 +1,49 @@
+/* =========================================================
+   Toast e WhatsApp
+   ========================================================= */
+.toast--show {
+  pointer-events: auto;
+}
+
+.toast__action {
+  margin-left: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgb(255 255 255 / 0.12);
+  white-space: nowrap;
+  transition: background-color 0.2s;
+}
+
+.toast__action:hover {
+  background: #1f5bff;
+}
+
+.whats-float__label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: #0a0a0b;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 10px 30px -12px rgb(10 10 11 / 0.18);
+  opacity: 0;
+  transform: translate(8px, -50%);
+  pointer-events: none;
+  transition:
+    opacity 0.25s,
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .whats-float:hover .whats-float__label {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}

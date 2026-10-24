@@ -1,0 +1,145 @@
+/* =========================================================
+   Detalhes das seções: rabiscos da textura do banner em todas
+   e pincelada cinza nas claras
+   ========================================================= */
+.method,
+.pricing,
+.footer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/*
+  Rabiscos (mesma textura do banner) em todas as seções: cinza nas claras e
+  branco bem apagado nas escuras. --ink-size controla a escala do desenho.
+*/
+
+.method,
+.footer {
+  background-image: url('../../imagens/tinta-textura-clara.svg');
+  background-position: center top;
+  background-size: 1600px 1000px;
+  background-repeat: repeat;
+}
+
+@media (max-width: 640px) {
+  .method,
+  .footer {
+    background-size: 1100px 690px;
+  }
+}
+
+/* Pincelada cinza no canto inferior esquerdo das seções claras */
+.problem {
+  background:
+    url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+    url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #ffffff;
+}
+
+@media (max-width: 640px) {
+  .problem {
+    background:
+      url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+      url('../../imagens/tinta-textura-suave.svg') center top / 1100px 690px repeat #ffffff;
+  }
+}
+
+.courses {
+  background:
+    url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+    url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #f8f9fa;
+}
+
+@media (max-width: 640px) {
+  .courses {
+    background:
+      url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+      url('../../imagens/tinta-textura-suave.svg') center top / 1100px 690px repeat #f8f9fa;
+  }
+}
+
+.faq {
+  background:
+    url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+    url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #ffffff;
+}
+
+@media (max-width: 640px) {
+  .faq {
+    background:
+      url('../../imagens/pincel-cinza.svg') left bottom / min(46%, 620px) 150px no-repeat,
+      url('../../imagens/tinta-textura-suave.svg') center top / 1100px 690px repeat #ffffff;
+  }
+}
+
+/* Planos: cinza claro com rabiscos suaves */
+.pricing {
+  background: url('../../imagens/tinta-textura-suave.svg') center top / 1600px 1000px repeat #f8f9fa;
+}
+
+@media (max-width: 640px) {
+  .pricing {
+    background: url('../../imagens/tinta-textura-suave.svg') center top / 1100px 690px repeat #f8f9fa;
+  }
+}
+
+.decor {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .problem,
+  .courses,
+  .faq {
+    background-size: 80% 90px, 1100px 690px;
+  }
+}
+
+/* Formas geométricas da faixa de benefícios: X em contorno, quadradinhos e canto com retícula */
+.shape {
+  background: center / contain no-repeat;
+}
+
+.shape--xo {
+  width: 150px;
+  height: 150px;
+  background-image: url('../../imagens/forma-x-contorno.svg');
+  opacity: 0.55;
+}
+
+.shape--squares {
+  width: 12px;
+  height: 108px;
+  background-image: url('../../imagens/forma-quadrados.svg');
+}
+
+/* Cantos em triângulo azul com retícula (o de baixo é o mesmo, girado) */
+.shape--corner {
+  width: 190px;
+  height: 190px;
+  background-image: url('../../imagens/forma-canto.svg');
+}
+
+.shape--corner--bl {
+  transform: rotate(180deg);
+}
+
+/* No celular ficam só os cantos e os X grandes, menores */
+@media (max-width: 640px) {
+  .shape:not(.shape--m) {
+    display: none;
+  }
+
+  .shape--corner {
+    width: 90px;
+    height: 90px;
+  }
+
+  .shape--xo {
+    width: 96px;
+    height: 96px;
+  }
+}

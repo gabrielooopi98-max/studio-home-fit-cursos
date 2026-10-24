@@ -1,0 +1,721 @@
+/* =========================================================
+   Hero (banner topo) — foto escura da academia, painel branco
+   na diagonal com bordas de pincel seco e faixa azul no canto
+   ========================================================= */
+.hero {
+  /* início do texto (mesma borda do .container) */
+  --cx: max(24px, calc((100% - 1240px) / 2 + 24px));
+  /* largura do painel claro */
+  --pw: 920px;
+  position: relative;
+  display: flex;
+  min-height: min(100svh, 900px);
+  background: #0a0a0b;
+  color: #0a0a0b;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/*
+  Fachada do Studio no banner inteiro, nítida e em preto e branco.
+  Ancorada à direita: o letreiro aparece no espaço escuro ao lado da dupla.
+*/
+.hero__bg {
+  position: absolute;
+  z-index: -5;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 85% 22%;
+  /* preto e branco natural, um pouco escurecido para a dupla e o menu se destacarem */
+  filter: grayscale(1) contrast(1.1) brightness(0.55);
+  pointer-events: none;
+}
+
+/*
+  Painel claro com cortes diagonais retos: começa 140px antes do texto e tem 920px de largura.
+  Borda esquerda de 10% → 0% e borda direita de 98% → 76% (mesmo ângulo nas camadas abaixo).
+*/
+.hero__panel {
+  position: absolute;
+  z-index: -3;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--cx) - 140px);
+  width: var(--pw);
+  /* cinza-claro de papel, com a textura de pincel bem suave (a camada clara por cima apaga metade) */
+  background:
+    linear-gradient(rgb(236 238 242 / 0.6), rgb(236 238 242 / 0.6)),
+    #eceef2 url('../../imagens/tinta-textura.svg') center / cover no-repeat;
+  clip-path: polygon(10% 0, 98% 0, 76% 100%, 0 100%);
+  animation: panelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+/* Camadas paralelas à borda direita, como as setas do logo: faixa azul e filete branco */
+.hero__edge {
+  position: absolute;
+  z-index: -3;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--cx) - 140px);
+  width: var(--pw);
+  animation: panelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards;
+}
+
+.hero__edge::before,
+.hero__edge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.hero__edge::before {
+  background: #1f5bff;
+  clip-path: polygon(calc(98% + 12px) 0, calc(98% + 22px) 0, calc(76% + 22px) 100%, calc(76% + 12px) 100%);
+}
+
+.hero__edge::after {
+  background: rgb(255 255 255 / 0.45);
+  clip-path: polygon(calc(98% + 34px) 0, calc(98% + 36px) 0, calc(76% + 36px) 100%, calc(76% + 34px) 100%);
+}
+
+/* Cunha azul subindo no canto inferior direito, atrás da dupla, com um filete paralelo */
+.hero__band {
+  position: absolute;
+  /* atrás do painel: a ponta da cunha não passa por cima do claro */
+  z-index: -4;
+  right: 0;
+  bottom: 0;
+  width: min(58%, 900px);
+  height: 40%;
+  animation: bandIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s backwards;
+}
+
+.hero__band::before,
+.hero__band::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.hero__band::before {
+  background: #1f5bff;
+  clip-path: polygon(0 100%, 100% 34%, 100% 100%);
+}
+
+.hero__band::after {
+  background: rgb(255 255 255 / 0.45);
+  clip-path: polygon(0 calc(100% - 18px), 100% calc(34% - 18px), 100% calc(34% - 16px), 0 calc(100% - 16px));
+}
+
+/*
+  Detalhes sobre a fachada escura. Ficam no mesmo nível da cunha azul (atrás do
+  painel claro e da dupla), então só aparecem nas áreas onde a foto da academia aparece.
+*/
+.hero__deco {
+  position: absolute;
+  z-index: -4;
+  pointer-events: none;
+  background: center / contain no-repeat;
+  animation: fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.6s backwards;
+}
+
+/* X grande em contorno, no alto à direita, atrás do professor */
+.hero__deco--x {
+  top: calc(76px + 36px);
+  right: 4%;
+  width: 170px;
+  height: 170px;
+  background-image: url('../../imagens/forma-x-contorno.svg');
+  opacity: 0.14;
+}
+
+@media (max-width: 980px) {
+  .hero__deco--x {
+    top: calc(68px + 36px);
+  }
+}
+
+/* Coluna de quadradinhos azuis na borda direita */
+.hero__deco--squares {
+  top: calc(76px + 250px);
+  right: 28px;
+  width: 12px;
+  height: 108px;
+  background-image: url('../../imagens/forma-quadrados.svg');
+}
+
+@media (max-width: 980px) {
+  .hero__deco--squares {
+    top: calc(68px + 250px);
+  }
+}
+
+/* Faixa escura da esquerda: só aparece com folga em telas largas */
+.hero__deco--x-left,
+.hero__deco--dots-left {
+  display: none;
+}
+
+@media (min-width: 1500px) {
+  .hero__deco--x-left {
+    display: block;
+    top: 24%;
+    left: calc(var(--cx) - 280px);
+    width: 110px;
+    height: 110px;
+    background-image: url('../../imagens/forma-x-contorno.svg');
+    opacity: 0.25;
+  }
+
+  .hero__deco--dots-left {
+    display: block;
+    bottom: 18%;
+    left: calc(var(--cx) - 250px);
+    width: 44px;
+    height: 44px;
+    background-image: url('../../imagens/forma-pontos.svg');
+    opacity: 0.4;
+  }
+}
+
+/* Tablet e celular: a foto aparece só embaixo, atrás da dupla */
+@media (max-width: 980px) {
+  /* no canto escuro logo abaixo da diagonal, à esquerda da dupla */
+  .hero__deco--x {
+    top: auto;
+    right: auto;
+    bottom: calc(var(--visual-h) - 205px);
+    left: -26px;
+    width: 116px;
+    height: 116px;
+  }
+
+  .hero__deco--squares {
+    top: auto;
+    right: 16px;
+    bottom: 150px;
+    width: 10px;
+    height: 90px;
+    background-size: 10px 90px;
+    background-position: top;
+  }
+}
+
+/* A dupla começa logo depois do texto e cruza a borda do painel */
+.hero__visual {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--cx) + 520px);
+  right: 0;
+}
+
+/* brilho azul suave atrás da dupla */
+.hero__visual::before {
+  content: '';
+  position: absolute;
+  left: 6%;
+  bottom: 4%;
+  width: min(760px, 90%);
+  height: 78%;
+  background: radial-gradient(closest-side, rgb(31 91 255 / 0.42), rgb(31 91 255 / 0.12) 55%, transparent);
+  filter: blur(10px);
+  animation: fadeIn 1.4s ease 0.5s backwards;
+  pointer-events: none;
+}
+
+.hero__duo {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: auto;
+  height: 90%;
+  max-width: none;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 24px 32px rgb(0 0 0 / 0.45));
+  animation: duoIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s backwards;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+}
+
+@keyframes bandIn {
+  from {
+    opacity: 0;
+    transform: translateX(80px);
+  }
+}
+
+@keyframes duoIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+}
+
+.hero__inner {
+  display: flex;
+  align-items: center;
+  padding-top: calc(76px + 32px);
+  padding-bottom: 64px;
+}
+
+@media (max-width: 980px) {
+  .hero__inner {
+    padding-top: calc(68px + 32px);
+  }
+}
+
+/*
+  Logo centralizada na parte clara do banner, na mesma linha da cápsula do menu.
+  Na altura da logo a área clara vai de ~9,6% a ~97% da largura do painel
+  (bordas diagonais do clip-path); a parte que sai da tela à esquerda não conta.
+*/
+.hero__brand {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: max(0px, calc(var(--cx) - 140px + var(--pw) * 0.096));
+  right: calc(100% - (var(--cx) - 140px + var(--pw) * 0.971));
+  /* anula a largura e as margens do .container */
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 76px;
+  animation: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.15s backwards;
+}
+
+@media (max-width: 980px) {
+  .hero__brand {
+    height: 68px;
+  }
+}
+
+.hero .hero__logo img {
+  height: 68px;
+}
+
+.hero__content {
+  max-width: 520px;
+}
+
+/* ✕✕✕ + "CURSOS ONLINE" acima do título */
+.hero__kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  color: #6b7079;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.hero__xxx {
+  display: flex;
+  gap: 1px;
+  color: #0a0a0b;
+}
+
+.hero__title {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 900;
+  font-size: clamp(3.2rem, 6.4vw, 6rem);
+  line-height: 0.92;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+/* "TREINE" / "CERTO" empilhados */
+.hero__title span {
+  display: block;
+  color: #1f5bff;
+}
+
+/* frase de apoio em preto, com um traço azul na frente: o azul fica só no CERTO */
+.hero__subtitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 22px;
+  font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #17181c;
+}
+
+.hero__subtitle::before {
+  content: '';
+  flex: none;
+  /* alinhado com a primeira linha, mesmo quando a frase quebra */
+  margin-top: 0.6em;
+  width: 28px;
+  height: 3px;
+  background: #1f5bff;
+}
+
+.hero__lead {
+  margin-top: 14px;
+  max-width: 470px;
+  color: #4a4e56;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+/* botões logo abaixo do texto */
+.hero__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+/*
+  Botões do banner: maiúsculas fortes, cantos retos de leve e um brilho que
+  atravessa no hover. Azul = ação principal (com a seta numa caixinha), preto = secundária.
+*/
+.hero__btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 60px;
+  padding: 0 28px;
+  border-radius: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: #ffffff;
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s;
+}
+
+/* faixa de brilho escondida à esquerda; atravessa o botão no hover */
+.hero__btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -70%;
+  width: 45%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.28), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.hero__btn--azul {
+  padding-right: 10px;
+  background: #1f5bff;
+  /* sombra azul embaixo + filete escuro na base, dá volume */
+  box-shadow:
+    0 16px 30px -16px rgb(31 91 255 / 0.9),
+    inset 0 -3px 0 rgb(0 0 0 / 0.16);
+}
+
+.hero__btn--preto {
+  background: #0a0a0b;
+  box-shadow:
+    0 16px 30px -18px rgb(10 10 11 / 0.8),
+    inset 0 -3px 0 rgb(255 255 255 / 0.08);
+}
+
+/* caixinha da seta, dentro do botão azul */
+.hero__btn-seta {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 7px;
+  background: rgb(255 255 255 / 0.16);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s,
+    color 0.25s;
+}
+
+.hero__btn:active {
+  transform: translateY(0) scale(0.98);
+  transition-duration: 0.1s;
+}
+
+.hero__btn:focus-visible {
+  outline: 3px solid #1f5bff;
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hero__btn:hover {
+    transform: translateY(-3px);
+  }
+
+  .hero__btn:hover::after {
+    left: 130%;
+  }
+
+  .hero__btn--azul:hover {
+    background: #1a52f0;
+    box-shadow:
+      0 22px 36px -16px rgb(31 91 255 / 1),
+      inset 0 -3px 0 rgb(0 0 0 / 0.16);
+  }
+
+  .hero__btn--azul:hover .hero__btn-seta {
+    background: #ffffff;
+    color: #1f5bff;
+    transform: translateX(3px);
+  }
+
+  .hero__btn--preto:hover {
+    background: #202227;
+    box-shadow:
+      0 22px 36px -18px rgb(10 10 11 / 0.9),
+      inset 0 -3px 0 rgb(255 255 255 / 0.08);
+  }
+}
+
+/*
+  Formas geométricas discretas no painel claro, no estilo da seção Professores.
+  Posições relativas à borda do texto (--cx), para ficarem sempre no painel.
+*/
+.hero__shape {
+  position: absolute;
+  z-index: -2;
+  pointer-events: none;
+  background: #0a0a0b;
+  -webkit-mask: var(--shape) center / contain no-repeat;
+  mask: var(--shape) center / contain no-repeat;
+  animation: heroIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.6s backwards;
+}
+
+/* X grande só em contorno, cortado pela base do banner */
+.hero__shape--xo {
+  --shape: url('../../imagens/forma-x-contorno.svg');
+  left: calc(var(--cx) + 330px);
+  bottom: -46px;
+  width: 140px;
+  height: 140px;
+  opacity: 0.12;
+}
+
+/* Coluna de quadradinhos azuis na lateral do painel */
+.hero__shape--squares {
+  --shape: url('../../imagens/forma-quadrados.svg');
+  left: calc(var(--cx) - 64px);
+  top: 46%;
+  width: 10px;
+  height: 90px;
+  background: #1f5bff;
+}
+
+/* X pequeno sólido perto do título */
+.hero__shape--x {
+  --shape: url('../../imagens/forma-x.svg');
+  left: calc(var(--cx) + 480px);
+  top: 27%;
+  width: 22px;
+  height: 22px;
+  background: #1f5bff;
+}
+
+/* Entrada: o texto e as informações sobem em sequência */
+.hero__in {
+  animation: heroIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0s) backwards;
+}
+
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* Entre 981 e 1180px o texto fica mais estreito para caber ao lado da dupla */
+@media (max-width: 1180px) and (min-width: 981px) {
+  .hero__content {
+    max-width: 440px;
+  }
+
+  .hero__shape--x {
+    display: none;
+  }
+
+  .hero {
+    --pw: 820px;
+  }
+
+  /* a cápsula do menu (~570px) invade a área clara: centraliza no espaço livre à esquerda dela */
+  .hero__brand {
+    right: max(calc(100% - (var(--cx) - 140px + var(--pw) * 0.971)), 610px);
+  }
+
+  .hero__visual {
+    left: calc(var(--cx) + 440px);
+  }
+}
+
+/* Tablet e celular: texto no painel branco e a dupla abaixo, sobre a foto escura */
+@media (max-width: 980px) {
+  /* painel na largura toda: a logo fica centralizada numa linha própria, abaixo dos botões do header */
+  .hero__brand {
+    top: 68px;
+    left: 0;
+    right: 0;
+    height: auto;
+  }
+
+  .hero {
+    --visual-h: clamp(360px, 92vw, 540px);
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .hero__inner {
+    padding-top: calc(68px + 84px);
+    padding-bottom: 88px;
+  }
+
+  .hero .hero__logo img {
+    height: 56px;
+  }
+
+  .hero__shape {
+    display: none;
+  }
+
+  /* painel na largura toda, terminando numa diagonal reta acima da dupla */
+  .hero__panel {
+    left: 0;
+    width: 100%;
+    bottom: calc(var(--visual-h) - 70px);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 64px), 0 100%);
+    animation-name: fadeIn;
+  }
+
+  /* faixa azul paralela logo abaixo da diagonal (caixa 20px mais alta que o painel) */
+  .hero__edge {
+    left: 0;
+    width: 100%;
+    bottom: calc(var(--visual-h) - 90px);
+    animation-name: fadeIn;
+  }
+
+  .hero__edge::before {
+    clip-path: polygon(0 calc(100% - 10px), 100% calc(100% - 74px), 100% calc(100% - 66px), 0 calc(100% - 2px));
+  }
+
+  .hero__edge::after {
+    display: none;
+  }
+
+  /* cunha azul só na base da foto */
+  .hero__band {
+    width: 100%;
+    height: 120px;
+  }
+
+  .hero__visual {
+    position: relative;
+    order: 2;
+    left: auto;
+    right: auto;
+    width: 100%;
+    max-width: 560px;
+    height: var(--visual-h);
+    margin: -70px auto 0;
+  }
+
+  .hero__duo {
+    left: 50%;
+    width: 100%;
+    height: 96%;
+    translate: -50% 0;
+    object-position: center bottom;
+  }
+}
+
+@media (max-width: 640px) {
+  /* no celular a logo ganha uma linha própria, centralizada, abaixo da cápsula do menu */
+  .hero__brand {
+    top: 68px;
+    height: auto;
+  }
+
+  .hero__inner {
+    padding-top: calc(68px + 76px);
+  }
+
+  .hero__kicker {
+    gap: 10px;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+  }
+
+  .hero__xxx svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .hero__title {
+    font-size: clamp(3rem, 15vw, 4rem);
+  }
+
+  .hero__subtitle {
+    margin-top: 14px;
+    font-size: 0.95rem;
+  }
+
+  .hero__lead {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  /* os dois botões lado a lado */
+  .hero__ctas {
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin-top: 24px;
+  }
+
+  .hero__btn {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 10px;
+    height: 54px;
+    padding-inline: 12px;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+  }
+
+  .hero__btn--azul {
+    padding-right: 7px;
+  }
+
+  .hero__btn-seta {
+    width: 36px;
+    height: 36px;
+  }
+
+}

@@ -1,0 +1,570 @@
+/* =========================================================
+   Conta, login, pedidos e carregamento
+   ========================================================= */
+
+/* Spinner azul sobre fundo claro (o padrão é branco, para botões azuis) */
+.btn--outline .spinner,
+.btn--added .spinner,
+.member-empty .spinner,
+.order-card .spinner,
+.aform--loading .spinner,
+.adm-gate .spinner,
+.xdrawer .btn--outline .spinner {
+  border-color: rgb(31 91 255 / 0.2);
+  border-top-color: #1f5bff;
+}
+
+.spinner--light {
+  border-color: rgb(255 255 255 / 0.3);
+  border-top-color: #ffffff;
+}
+
+.btn--danger {
+  background: #d92d20;
+  color: #ffffff;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: #b42318;
+}
+
+.page-loading {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+/* Esqueletos enquanto o catálogo carrega */
+@keyframes skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.course--skeleton,
+.offer--skeleton,
+.mcourse--skeleton {
+  border: 0;
+  background: linear-gradient(90deg, #f1f2f4 30%, #f8f9fa 50%, #f1f2f4 70%) 0 0 / 200% 100%;
+  animation: skeleton 1.4s linear infinite;
+}
+
+.course--skeleton {
+  min-height: 430px;
+}
+
+.offer--skeleton {
+  min-height: 560px;
+}
+
+.mcourse--skeleton {
+  min-height: 340px;
+}
+
+.courses__state {
+  grid-column: 1 / -1;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 40px 20px;
+  color: #6b7079;
+  text-align: center;
+}
+
+/* Botão e menu da conta no header */
+.account {
+  position: relative;
+}
+
+.account__avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1f5bff;
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.account__menu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 12px);
+  right: 0;
+  display: grid;
+  min-width: 250px;
+  padding: 8px;
+  border: 1px solid #e4e6ea;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #0a0a0b;
+  box-shadow: 0 30px 60px -20px rgb(10 10 11 / 0.35);
+  animation: fadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.account__who {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 6px;
+  padding: 10px 12px 12px;
+  border-bottom: 1px solid #f1f2f4;
+}
+
+.account__who strong {
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.account__who span {
+  color: #6b7079;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.account__who em {
+  justify-self: start;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: #edf1ff;
+  color: #1f5bff;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.account__menu a,
+.account__menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: #33363d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.account__menu a:hover,
+.account__menu button:hover {
+  background: #f1f2f4;
+  color: #0a0a0b;
+}
+
+.account__menu svg {
+  color: #1f5bff;
+}
+
+/* Situação do pedido: cor + ícone + texto */
+.chip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chip-status--good {
+  background: #e6f7f0;
+  color: #0f7d48;
+}
+
+.chip-status--warning {
+  background: #fff4dc;
+  color: #8a5300;
+}
+
+.chip-status--critical {
+  background: #fdeceb;
+  color: #b42318;
+}
+
+.chip-status--serious {
+  background: #f3ecff;
+  color: #5b21b6;
+}
+
+.chip-status--neutral {
+  background: #f1f2f4;
+  color: #50545c;
+}
+
+/* Checkout: login antes, cupom e erros */
+.co__login {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  padding: 24px 0 8px;
+  text-align: center;
+}
+
+.co__login p {
+  max-width: 420px;
+  color: #50545c;
+}
+
+.co__done-icon--blue {
+  background: #edf1ff;
+  color: #1f5bff;
+}
+
+.co__coupon {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.co__coupon label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.co__coupon > div {
+  display: flex;
+  gap: 8px;
+}
+
+.co__coupon input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid #e4e6ea;
+  border-radius: 12px;
+  background: #f8f9fa;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  outline: none;
+}
+
+.co__coupon input:focus {
+  border-color: #1f5bff;
+  background: #ffffff;
+}
+
+.co__coupon .btn {
+  --h: 44px;
+}
+
+.co__coupon-ok {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #0f7d48;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.co__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fdeceb;
+  color: #b42318;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.co__error svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.co__discount {
+  color: #0f7d48;
+  font-weight: 700;
+}
+
+/* Minha conta */
+.account-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.acard {
+  display: grid;
+  gap: 14px;
+  padding: 26px;
+  border: 1px solid #e4e6ea;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.acard--wide {
+  grid-column: 1 / -1;
+}
+
+.acard h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.acard h2 svg {
+  color: #1f5bff;
+}
+
+.acard__field {
+  display: grid;
+  gap: 6px;
+}
+
+.acard__field span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #33363d;
+}
+
+.acard__field input {
+  height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid #e4e6ea;
+  border-radius: 12px;
+  background: #f8f9fa;
+  outline: none;
+}
+
+.acard__field input:focus {
+  border-color: #1f5bff;
+  background: #ffffff;
+}
+
+.acard__field input[readonly] {
+  color: #6b7079;
+}
+
+.acard .btn {
+  justify-self: start;
+}
+
+.acard__msg {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.acard__msg.is-ok {
+  background: #e6f7f0;
+  color: #0f7d48;
+}
+
+.acard__msg.is-error {
+  background: #fdeceb;
+  color: #b42318;
+}
+
+.acard__muted {
+  color: #6b7079;
+}
+
+.aorders {
+  display: grid;
+  gap: 10px;
+}
+
+.aorders a {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 20px;
+  padding: 14px 16px;
+  border: 1px solid #e4e6ea;
+  border-radius: 12px;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.aorders a:hover {
+  border-color: #d9e2ff;
+  background: #edf1ff;
+}
+
+.aorders__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.aorders__main span {
+  color: #6b7079;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.aorders__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  color: #6b7079;
+  font-size: 0.85rem;
+}
+
+.aorders__meta strong {
+  color: #0a0a0b;
+}
+
+/* Página do pedido (volta do pagamento) */
+.order-card {
+  display: grid;
+  gap: 22px;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px;
+  border: 1px solid #e4e6ea;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px -12px rgb(10 10 11 / 0.18);
+}
+
+.order-card__status {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.order-card__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: #50545c;
+}
+
+.order-card--ok .order-card__icon {
+  background: #e6f7f0;
+  color: #0f9d58;
+}
+
+.order-card--wait .order-card__icon {
+  background: #edf1ff;
+  color: #1f5bff;
+}
+
+.order-card--error .order-card__icon {
+  background: #fdeceb;
+  color: #d92d20;
+}
+
+.order-card__status h2 {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.order-card__status p {
+  margin-top: 6px;
+  color: #50545c;
+}
+
+.order-card__hint {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8f9fa;
+  font-size: 0.88rem;
+}
+
+.order-card__info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+  margin: 0;
+  padding: 16px 0;
+  border-block: 1px solid #f1f2f4;
+}
+
+.order-card__info dt {
+  color: #6b7079;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.order-card__info dd {
+  margin: 4px 0 0;
+  font-weight: 600;
+}
+
+.order-card__items {
+  display: grid;
+  gap: 10px;
+}
+
+.order-card__items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.order-card__items span {
+  overflow-wrap: anywhere;
+}
+
+.order-card__discount {
+  color: #0f7d48;
+}
+
+.order-card__total {
+  padding-top: 12px;
+  border-top: 1px dashed #c9ccd2;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 760px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .order-card {
+    padding: 24px 18px;
+  }
+
+  .order-card__status {
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .course--skeleton,
+  .offer--skeleton,
+  .mcourse--skeleton {
+    animation: none;
+  }
+}

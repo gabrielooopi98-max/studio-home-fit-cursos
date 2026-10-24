@@ -1,0 +1,207 @@
+/* =========================================================
+   Responsivo
+   ========================================================= */
+@media (max-width: 1180px) {
+  .courses__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 980px) {
+
+  .section {
+    padding: 88px 0;
+  }
+
+  .section__head {
+    grid-template-columns: 1fr;
+    align-items: start;
+    margin-bottom: 40px;
+  }
+
+  .problem__grid,
+  .faq__grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .faq__intro {
+    position: static;
+  }
+
+  .courses__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-inline: 16px;
+  }
+
+  .section {
+    padding: 72px 0;
+  }
+
+  .header__inner {
+    gap: 12px;
+  }
+
+  .logo img {
+    height: 36px;
+  }
+
+  /* 2 cards lado a lado: versão compacta */
+  .courses__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .course {
+    border-radius: 12px;
+  }
+
+  .course__badges .level {
+    top: 8px;
+    left: 8px;
+  }
+
+  .level {
+    padding: 4px 7px;
+    font-size: 0.56rem;
+  }
+
+  .badge-best,
+  .course__desc,
+  .course__peek {
+    display: none;
+  }
+
+  .course__off {
+    top: 8px;
+    right: 9px;
+    padding: 3px 7px;
+    font-size: 0.64rem;
+    box-shadow: 2px 2px 0 #0a0a0b;
+  }
+
+  .course__body {
+    padding: 10px 12px 12px;
+  }
+
+  .course__tag {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .course__title {
+    margin: 6px 0 10px;
+    font-size: 0.86rem;
+  }
+
+  .course__meta {
+    gap: 4px;
+    padding-bottom: 10px;
+  }
+
+  .course__meta li {
+    gap: 4px;
+    padding: 4px 7px;
+    font-size: 0.62rem;
+  }
+
+  .course__meta svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .course__foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .price__de,
+  .price__extra {
+    font-size: 0.62rem;
+  }
+
+  .price__extra {
+    padding-block: 2px;
+  }
+
+  .price__extra--economia {
+    padding-inline: 6px;
+  }
+
+  .price strong {
+    font-size: 1.1rem;
+  }
+
+  /* card estreito (2 por linha): texto inteiro, sem ícone; em telas bem pequenas quebra em 2 linhas */
+  .course__foot .btn {
+    --h: 36px;
+    height: auto;
+    min-height: var(--h);
+    gap: 6px;
+    padding: 6px 8px;
+    font-size: 0.62rem;
+    letter-spacing: 0;
+    line-height: 1.2;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .course__foot .btn--primary svg {
+    display: none;
+  }
+
+  /* 2 x 2 no celular: todos os níveis à vista, sem rolagem escondida */
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+
+  .filter {
+    gap: 8px;
+    height: 42px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+  }
+
+  .filter__count {
+    margin-left: auto;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .whats-float {
+    right: 16px;
+    bottom: 16px;
+    width: 54px;
+    height: 54px;
+  }
+
+  .toast {
+    bottom: 84px;
+  }
+}

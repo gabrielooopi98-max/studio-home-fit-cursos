@@ -1,0 +1,148 @@
+/* =========================================================
+   Botões
+   ========================================================= */
+.btn {
+  --h: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: var(--h);
+  padding: 0 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  border: 1.5px solid transparent;
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s,
+    box-shadow 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+/* ícones dos botões nunca encolhem quando falta espaço */
+.btn svg {
+  flex-shrink: 0;
+}
+
+.btn .arrow {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  transition-duration: 0.08s;
+}
+
+.btn:disabled {
+  cursor: default;
+}
+
+.btn--primary:disabled:not(.btn--added) {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.btn--sm {
+  --h: 42px;
+  padding: 0 18px;
+  font-size: 0.875rem;
+  border-radius: 10px;
+}
+
+.btn--lg {
+  --h: 58px;
+  padding: 0 30px;
+  font-size: 1rem;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.btn--primary {
+  background: #1f5bff;
+  color: #ffffff;
+  box-shadow: 0 8px 20px -10px rgb(31 91 255 / 0.7);
+}
+
+.btn--dark {
+  background: #0a0a0b;
+  color: #ffffff;
+}
+
+.btn--ghost {
+  color: #ffffff;
+  border-color: rgb(255 255 255 / 0.22);
+  background: rgb(255 255 255 / 0.04);
+  backdrop-filter: blur(6px);
+}
+
+.btn--outline {
+  border-color: #c9ccd2;
+  color: #0a0a0b;
+  background: #ffffff;
+}
+
+.btn--added {
+  background: #f1f2f4;
+  color: #50545c;
+  border-color: #e4e6ea;
+}
+
+.play-dot {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #0a0a0b;
+  padding-left: 2px;
+}
+
+.icon-btn {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #ffffff;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.icon-btn--light {
+  color: #0a0a0b;
+  border-color: #e4e6ea;
+}
+
+.icon-btn__badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #1f5bff;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  border: 2px solid #0a0a0b;
+  animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.4);
+  }
+}

@@ -1,0 +1,543 @@
+/* =========================================================
+   Header — cápsula flutuante no canto superior direito com o
+   menu, a conta e o carrinho. A logo entra na cápsula quando o
+   banner (que já tem a logo) sai da tela.
+   ========================================================= */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.header__inner {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+@media (max-width: 980px) {
+  .header__inner {
+    height: 68px;
+  }
+}
+
+.header__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 999px;
+  /* preto sólido com leve degradê: igual sobre qualquer fundo (antes era translúcido e ficava cinza no banner) */
+  background: linear-gradient(180deg, #1a1b20, #0c0d10);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  backdrop-filter: saturate(180%) blur(16px);
+  /* filete de luz no topo + sombra: a cápsula parece uma peça sólida */
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 12px 32px -14px rgb(0 0 0 / 0.6);
+  pointer-events: auto;
+  animation: headerIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards;
+  transition:
+    background-color 0.3s,
+    box-shadow 0.3s;
+}
+
+/* Ao rolar, a sombra da cápsula fica mais funda */
+.header--scrolled .header__bar {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 18px 40px -16px rgb(0 0 0 / 0.7);
+}
+
+/* Logo dentro da cápsula: escondida no topo da página (o banner já mostra a logo) */
+.header__logo {
+  display: flex;
+  align-items: center;
+  flex: none;
+  max-width: 0;
+  margin-right: -6px;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-width 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    margin 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    padding 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s;
+}
+
+.header__logo img {
+  height: 30px;
+  width: auto;
+  max-width: none;
+}
+
+.header--marca .header__logo {
+  max-width: 150px;
+  margin-right: 4px;
+  padding: 0 12px 0 14px;
+  opacity: 1;
+}
+
+@keyframes headerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 0.2s;
+}
+
+.logo img {
+  height: 46px;
+  width: auto;
+}
+
+.nav__list {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  color: #c9ccd2;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    color 0.2s,
+    background-color 0.25s;
+}
+
+.nav__link.is-active {
+  color: #ffffff;
+  background: #1f5bff;
+}
+
+/*
+  Luz de vidro dos links: uma peça só que desliza até o link sob o mouse e muda de largura
+  conforme a palavra (posição e largura vêm do Cabecalho.jsx). Fica atrás do texto.
+*/
+.nav__list {
+  position: relative;
+}
+
+.nav__link {
+  position: relative;
+  z-index: 1;
+}
+
+.nav__luz {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 40px;
+  border-radius: 999px;
+  /* pílula branca sólida, como o botão "Meus cursos": contraste forte com a cápsula escura */
+  background: #ffffff;
+  box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    left 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s;
+}
+
+.header__actions .icon-btn,
+.burger {
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s,
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.header__actions .icon-btn svg {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.icon-btn__badge {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Hovers do header (só com mouse) */
+@media (hover: hover) and (pointer: fine) {
+  /* o texto escurece quando a pílula branca já está chegando (o atraso evita preto sobre o escuro) */
+  .nav__link:not(.is-active):hover {
+    color: #0a0a0b;
+    transition:
+      color 0.18s 0.1s,
+      background-color 0.25s;
+  }
+
+  /* carrinho: fica azul com um anel de brilho e o número dá um pulo */
+  .header__actions .icon-btn:hover {
+    background: #1f5bff;
+    box-shadow:
+      0 0 0 4px rgb(31 91 255 / 0.25),
+      0 10px 22px -8px rgb(31 91 255 / 0.9);
+  }
+
+  .header__actions .icon-btn:hover .icon-btn__badge {
+    transform: scale(1.2);
+  }
+
+  .burger:hover {
+    background: #1748d6;
+    box-shadow:
+      0 0 0 4px rgb(31 91 255 / 0.25),
+      0 10px 22px -8px rgb(31 91 255 / 0.9);
+  }
+
+  .header__logo:hover {
+    opacity: 0.85;
+  }
+}
+
+.nav__num,
+.nav__arrow,
+.nav__footer {
+  display: none;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 6px;
+  border-left: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.header__actions .icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.icon-btn__badge {
+  border-color: #141416;
+}
+
+.burger {
+  display: none;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1f5bff;
+  transition: background-color 0.2s;
+}
+
+.burger span {
+  position: absolute;
+  left: 11px;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: #ffffff;
+  transition:
+    top 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.burger span:first-child {
+  top: 15px;
+}
+
+.burger span:last-child {
+  top: 23px;
+}
+
+.header--open .burger span:first-child,
+.header--open .burger span:last-child {
+  top: 19px;
+}
+
+.header--open .burger span:first-child {
+  transform: rotate(45deg);
+}
+
+.header--open .burger span:last-child {
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 980px) {
+  .burger {
+    display: block;
+  }
+
+  .header__actions {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  /*
+    Sem blur na cápsula: o blur prenderia o menu (position: fixed) dentro dela.
+    O fundo fica quase sólido para compensar.
+  */
+  .header__bar {
+    backdrop-filter: none;
+  }
+
+  /* com a logo, a cápsula ocupa a largura toda: logo à esquerda, botões à direita */
+  .header--marca .header__bar {
+    flex: 1;
+  }
+
+  .header__logo {
+    margin-right: auto;
+  }
+
+  .header--marca .header__logo {
+    margin-right: auto;
+    padding-left: 12px;
+  }
+
+  .header__logo img {
+    height: 26px;
+  }
+
+  /* Menu em tela cheia, atrás da cápsula */
+  .nav {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    padding: calc(68px + 12px) 24px 32px;
+    /* preto com os rabiscos claros, como as seções escuras */
+    background: url('../../imagens/tinta-textura-clara.svg') center top / 1100px 690px repeat #0a0a0b;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition:
+      opacity 0.3s,
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0.3s;
+  }
+
+  .header--open .nav {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .header--open .header__bar {
+    animation: none;
+  }
+
+  /* O botão flutuante cobriria as ações do menu */
+  body:has(.header--open) .whats-float {
+    display: none;
+  }
+
+  .nav__list {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .nav__link {
+    display: flex;
+    width: 100%;
+    height: auto;
+    gap: 16px;
+    padding: 22px 0;
+    border-radius: 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+
+  .nav__link.is-active {
+    background: none;
+    color: #5281ff;
+  }
+
+  .nav__luz {
+    display: none;
+  }
+
+  .nav__link.is-active .nav__arrow {
+    color: #5281ff;
+  }
+
+  /* links e botões entram em cascata quando o menu abre */
+  .header--open .nav__list li {
+    animation: menuItem 0.55s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 70ms + 90ms) backwards;
+  }
+
+  .header--open .nav__footer {
+    animation: menuItem 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.4s backwards;
+  }
+
+  .nav__num {
+    display: inline-block;
+    /* largura fixa: o "01" é mais estreito que o "02" e desalinhava os títulos */
+    min-width: 22px;
+    font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #5281ff;
+  }
+
+  .nav__arrow {
+    display: block;
+    margin-left: auto;
+    color: #6b7079;
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.2s;
+  }
+
+  .nav__footer {
+    display: grid;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 32px;
+  }
+}
+
+@keyframes menuItem {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+/* Computador, páginas internas: a logo já aparece no topo escuro da página, então a da cápsula espera a rolagem */
+@media (min-width: 981px) {
+  .header--logo-na-pagina .header__logo {
+    max-width: 0;
+    margin-right: -6px;
+    padding: 0;
+    opacity: 0;
+  }
+}
+
+/* Logo escura (só usada na barra branca do celular) */
+.header__logo-escura {
+  display: none;
+}
+
+/* =========================================================
+   Celular e tablet: sem cápsula. No topo da página inicial os
+   botões ficam soltos sobre o banner; ao rolar (e nas outras
+   páginas) vira uma barra branca de ponta a ponta com a logo
+   escura. Com o menu aberto, a barra fica preta junto do menu.
+   ========================================================= */
+@media (max-width: 980px) {
+  .header {
+    transition:
+      background-color 0.3s,
+      box-shadow 0.3s;
+  }
+
+  .header--solido {
+    background: #ffffff;
+    box-shadow:
+      0 1px 0 #e4e6ea,
+      0 10px 24px -18px rgb(10 10 11 / 0.35);
+  }
+
+  .header__bar,
+  .header--scrolled .header__bar {
+    flex: 1;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .header__actions {
+    margin-left: auto;
+  }
+
+  .header--marca .header__logo {
+    padding: 0;
+  }
+
+  .header__logo img {
+    height: 30px;
+  }
+
+  /* barra branca: logo escura */
+  .header--solido:not(.header--open) .header__logo-clara {
+    display: none;
+  }
+
+  .header--solido:not(.header--open) .header__logo-escura {
+    display: block;
+  }
+
+  /* carrinho: branco com sombra sobre o banner, cinza claro na barra branca */
+  .header__actions .icon-btn {
+    width: 42px;
+    height: 42px;
+    background: #ffffff;
+    color: #0a0a0b;
+    box-shadow: 0 6px 16px -8px rgb(10 10 11 / 0.35);
+  }
+
+  .header--solido .header__actions .icon-btn {
+    background: #f1f2f4;
+    box-shadow: none;
+  }
+
+  .header--open .header__actions .icon-btn {
+    background: rgb(255 255 255 / 0.1);
+    color: #ffffff;
+    box-shadow: none;
+  }
+
+  .burger {
+    width: 42px;
+    height: 42px;
+    box-shadow: 0 8px 18px -8px rgb(31 91 255 / 0.8);
+  }
+
+  .burger span {
+    left: 12px;
+  }
+
+  .burger span:first-child {
+    top: 16px;
+  }
+
+  .burger span:last-child {
+    top: 24px;
+  }
+
+  .header--open .burger span:first-child,
+  .header--open .burger span:last-child {
+    top: 20px;
+  }
+
+  /* tablet: o botão "Meus cursos" ganha borda para não sumir na barra branca */
+  .header--solido:not(.header--open) .header__conta:not(.is-active) {
+    box-shadow: inset 0 0 0 1px #e4e6ea;
+  }
+}

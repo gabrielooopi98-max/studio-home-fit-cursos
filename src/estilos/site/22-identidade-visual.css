@@ -1,0 +1,23 @@
+/* =========================================================
+   Identidade visual: logo e setas da marca
+   ========================================================= */
+.footer .logo img {
+  height: 52px;
+}
+
+.co__logo {
+  height: 34px;
+  width: auto;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 640px) {
+
+  .footer .logo img {
+    height: 44px;
+  }
+
+  .co__logo {
+    height: 28px;
+  }
+}
