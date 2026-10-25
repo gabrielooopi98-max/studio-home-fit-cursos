@@ -80,6 +80,45 @@
   clip-path: polygon(calc(98% + 34px) 0, calc(98% + 36px) 0, calc(76% + 36px) 100%, calc(76% + 34px) 100%);
 }
 
+/*
+  O mesmo par do lado esquerdo, espelhado e paralelo à borda esquerda do painel (10% → 0%):
+  faixa azul de 12 a 22px para fora e filete branco de 34 a 36px para fora.
+  A caixa começa 50px antes do painel para as duas camadas caberem nela.
+*/
+.hero__edge-esq {
+  position: absolute;
+  z-index: -3;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--cx) - 140px - 50px);
+  width: calc(var(--pw) * 0.1 + 50px);
+  animation: panelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.12s backwards;
+}
+
+.hero__edge-esq::before,
+.hero__edge-esq::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.hero__edge-esq::before {
+  background: #1f5bff;
+  clip-path: polygon(calc(var(--pw) * 0.1 + 28px) 0, calc(var(--pw) * 0.1 + 38px) 0, 38px 100%, 28px 100%);
+}
+
+.hero__edge-esq::after {
+  background: rgb(255 255 255 / 0.45);
+  clip-path: polygon(calc(var(--pw) * 0.1 + 14px) 0, calc(var(--pw) * 0.1 + 16px) 0, 16px 100%, 14px 100%);
+}
+
+@media (max-width: 980px) {
+  /* painel na largura toda: não há borda esquerda para acompanhar */
+  .hero__edge-esq {
+    display: none;
+  }
+}
+
 /* Cunha azul subindo no canto inferior direito, atrás da dupla, com um filete paralelo */
 .hero__band {
   position: absolute;
@@ -107,6 +146,47 @@
 .hero__band::after {
   background: rgb(255 255 255 / 0.45);
   clip-path: polygon(0 calc(100% - 18px), 100% calc(34% - 18px), 100% calc(34% - 16px), 0 calc(100% - 16px));
+}
+
+/*
+  Embaixo à esquerda: o mesmo par das bordas do painel (faixa azul de 10px e filete branco
+  12px acima dela), numa diagonal que desce até a base do banner. Fica atrás do painel
+  claro: só aparece na faixa escura à esquerda dele, em telas largas.
+*/
+.hero__band-esq {
+  position: absolute;
+  z-index: -4;
+  left: 0;
+  bottom: 0;
+  width: min(58%, 900px);
+  /* colada na base do banner: a faixa azul fica entre 24px e 0 acima da borda */
+  height: 36px;
+  animation: panelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s backwards;
+}
+
+.hero__band-esq::before,
+.hero__band-esq::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* faixa azul de 10px e filete branco 12px acima, descendo suavemente até a borda */
+.hero__band-esq::before {
+  background: #1f5bff;
+  clip-path: polygon(0 12px, 100% 26px, 100% 36px, 0 22px);
+}
+
+.hero__band-esq::after {
+  background: rgb(255 255 255 / 0.45);
+  clip-path: polygon(0 0, 100% 14px, 100% 16px, 0 2px);
+}
+
+@media (max-width: 980px) {
+  /* painel na largura toda: não sobra canto escuro à esquerda */
+  .hero__band-esq {
+    display: none;
+  }
 }
 
 /*
@@ -605,6 +685,28 @@
     display: none;
   }
 
+  /*
+    Foto só na área da dupla (o painel claro cobre o resto), enquadrada no letreiro
+    "Studio HomeFit" da fachada em vez das portas de vidro
+  */
+  .hero__bg {
+    top: auto;
+    height: calc(var(--visual-h) + 70px);
+    object-position: 72% 16%;
+  }
+}
+
+@media (max-width: 640px) {
+  /* no celular a dupla ocupa quase toda a largura: a foto desce para o letreiro sair abaixo da diagonal */
+  .hero__bg {
+    bottom: -90px;
+    height: calc(var(--visual-h) + 90px);
+    object-position: 68% 0;
+  }
+}
+
+@media (max-width: 980px) {
+
   /* painel na largura toda, terminando numa diagonal reta acima da dupla */
   .hero__panel {
     left: 0;
@@ -657,9 +759,9 @@
 }
 
 @media (max-width: 640px) {
-  /* no celular a logo ganha uma linha própria, centralizada, abaixo da cápsula do menu */
+  /* no celular a logo ganha uma linha própria, centralizada, logo abaixo dos botões do topo */
   .hero__brand {
-    top: 68px;
+    top: 52px;
     height: auto;
   }
 

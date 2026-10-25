@@ -15,7 +15,9 @@
   .hero__brand,
   .hero__panel,
   .hero__edge,
+  .hero__edge-esq,
   .hero__band,
+  .hero__band-esq,
   .hero__duo {
     animation-name: fadeIn;
   }

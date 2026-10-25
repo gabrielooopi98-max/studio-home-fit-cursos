@@ -22,12 +22,14 @@ export default function Banner() {
       {/* Painel branco na diagonal (pincel seco) onde fica o texto */}
       <span className="hero__panel" aria-hidden="true" />
       <span className="hero__edge" aria-hidden="true" />
+      <span className="hero__edge-esq" aria-hidden="true" />
       {SHAPES.map((s) => (
         <span key={s} className={`hero__shape hero__shape--${s}`} aria-hidden="true" />
       ))}
 
       {/* Faixa azul de pincel no canto inferior direito */}
       <span className="hero__band" aria-hidden="true" />
+      <span className="hero__band-esq" aria-hidden="true" />
 
       {/* Detalhes discretos nas áreas escuras, sobre a fachada (ficam atrás do painel e da dupla) */}
       {DECOR.map((d) => (
