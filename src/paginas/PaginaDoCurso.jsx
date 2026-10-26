@@ -1,4 +1,5 @@
 // Página de um curso (#/curso/<link-do-curso>): foto no topo, descrição, módulos e aulas, o que está incluso e a compra.
+import { useState } from 'react'
 import Icone from '../componentes/Icone'
 import Logo from '../componentes/Logo'
 import { EsqueletoCurso } from '../componentes/Esqueletos'
@@ -6,7 +7,63 @@ import { FormasDePagamento } from '../componentes/Seguranca'
 import { COURSE_INCLUDES } from '../dados/conteudo'
 import { formatBRL, img } from '../dados/site'
 import { useLibrary, useStore } from '../estado/hooks'
+import { backend } from '../servicos/banco'
 import { courseDuration, formatTotal, parseDuration } from '../servicos/duracao'
+import { isFileVideo, isPlayableUrl } from '../servicos/video'
+
+// link de YouTube/Vimeo começando a tocar sozinho (a pessoa já clicou no play da capa)
+const comAutoplay = (url) => `${url}${url.includes('?') ? '&' : '?'}autoplay=1`
+
+/*
+  Apresentação do curso (opcional, aberta para todos), sempre antes do Módulo 1.
+  Mostra a capa com o play; o vídeo só carrega quando a pessoa clica, para a página ficar leve.
+*/
+function Apresentacao({ course }) {
+  const [video, setVideo] = useState({ url: '', carregando: false, erro: '' })
+
+  const tocar = async () => {
+    setVideo({ url: '', carregando: true, erro: '' })
+    try {
+      const url = await backend.courseIntroUrl(course)
+      setVideo({ url, carregando: false, erro: isPlayableUrl(url) ? '' : 'Vídeo indisponível no momento.' })
+    } catch {
+      setVideo({ url: '', carregando: false, erro: 'Não foi possível carregar o vídeo. Tente de novo.' })
+    }
+  }
+
+  const pronto = video.url && isPlayableUrl(video.url)
+  return (
+    <section className="curso-apresentacao" aria-label="Apresentação do curso">
+      <div className="curso-apresentacao__video">
+        {pronto ? (
+          isFileVideo(video.url) ? (
+            <video src={video.url} controls autoPlay playsInline controlsList="nodownload" />
+          ) : (
+            <iframe
+              src={comAutoplay(video.url)}
+              title={`Apresentação do curso ${course.title}`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+          )
+        ) : (
+          <button type="button" className="curso-apresentacao__capa" onClick={tocar} disabled={video.carregando}>
+            <img src={img(course.image, 1200)} alt="" />
+            <span className="curso-apresentacao__play" aria-hidden="true">
+              {video.carregando ? <span className="spinner spinner--light" /> : <Icone name="play" size={26} />}
+            </span>
+            <span className="curso-apresentacao__texto">
+              <small>Antes de começar</small>
+              <strong>Assista à apresentação do curso</strong>
+            </span>
+          </button>
+        )}
+      </div>
+      {video.erro && <p className="curso-apresentacao__erro">{video.erro}</p>}
+    </section>
+  )
+}
 
 // Soma a duração das aulas de um módulo ("" se nenhuma tiver duração)
 const duracaoDoModulo = (m) => formatTotal(m.lessons.reduce((s, l) => s + (parseDuration(l.duration) ?? 0), 0))
@@ -150,6 +207,7 @@ export default function PaginaDoCurso({ slug, cartIds, onAdd, onBuyNow }) {
             <h2 className="curso-titulo">
               <Icone name="list" size={20} /> Conteúdo do curso
             </h2>
+            {course.introVideo && <Apresentacao key={course.id} course={course} />}
             <ol className="curso-modulos">
               {modulos.map((m, i) => (
                 <Modulo key={m.id} modulo={m} numero={i + 1} aberto={i === 0} />

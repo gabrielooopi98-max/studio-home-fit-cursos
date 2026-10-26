@@ -28,9 +28,18 @@ No Supabase: **SQL Editor > New query**.
 4. Nova query: cole `supabase/migrations/0004_pagamentos_seguros.sql` (regras de pagamento e registro de eventos) e **Run**.
 5. Nova query: cole `supabase/migrations/0005_protecao_reembolso.sql` (liberação gradual das aulas e registro das aulas
    abertas) e **Run**.
+6. Nova query: cole `supabase/migrations/0006_apresentacao_do_curso.sql` (vídeo de apresentação de cada curso) e **Run**.
 
-Os arquivos podem ser rodados de novo sem duplicar nada. **Sempre na ordem**: se rodar o 0001 de novo, rode o 0003, o
-0004 e o 0005 depois (eles substituem regras do 0001).
+Os arquivos podem ser rodados de novo sem duplicar nada. **Sempre na ordem**: se rodar um arquivo de novo, rode também
+todos os que vêm depois dele (cada um substitui algumas regras dos anteriores).
+
+### Apresentação do curso
+
+Em **Painel > Cursos > (curso) > Aulas**, acima do Módulo 1, fica o bloco **Apresentação do curso** (opcional): um vídeo
+curto falando do curso, para quem é e o que a pessoa vai aprender. O vídeo é sempre **enviado como arquivo** (MP4, WebM
+ou MOV): arraste para a área ou clique em **Escolher vídeo**. Ele aparece para **todos, mesmo sem comprar**, na página do
+curso e na área do aluno, sempre antes do Módulo 1. Só esse arquivo fica aberto ao público; as aulas continuam protegidas.
+No plano grátis do Supabase o limite é 50 MB por arquivo, o que dá para uma apresentação de 1 a 3 minutos.
 
 ### Proteção contra "assistir tudo e pedir reembolso"
 
@@ -75,9 +84,8 @@ No painel, em **Cursos > (curso) > Aulas**, cada aula tem duas opções:
   antigo é apagado do servidor.
 - **Colar link:** YouTube (não listado), Vimeo, Panda etc.
 
-Quem assiste um vídeo enviado recebe um link temporário (2 horas), gerado só para quem comprou o curso, para o admin,
-ou para qualquer visitante se a aula estiver marcada como **prévia grátis**. Esse link não serve como endereço fixo
-para compartilhar.
+Quem assiste um vídeo enviado recebe um link temporário (2 horas), gerado só para quem comprou o curso (e para o
+admin). Esse link não serve como endereço fixo para compartilhar. Nenhuma aula abre para quem não comprou.
 
 **Limites do plano do Supabase (importante):**
 
@@ -126,7 +134,7 @@ Para ter mais administradores: **Painel > Alunos > (pessoa) > Tornar administrad
 enquanto ele estiver ligado, então esquecer ligado não dá curso de graça para ninguém.
 **Desligue antes de divulgar o site.**
 
-## 6. Ligar o Mercado Pago (Pix, cartão e boleto)
+## 6. Ligar o Mercado Pago (Pix e cartão)
 
 A conta do Mercado Pago tem que ser de quem recebe o dinheiro das vendas: cada venda cai na conta dona da credencial.
 
@@ -216,7 +224,7 @@ de atenção: pedidos pagos sem acesso, acesso de pedido não pago, pendentes an
   admin com o modo de teste ligado.
 - **O navegador nunca confirma pagamento.** Voltar para a página de "sucesso" não libera nada: quem decide é o
   servidor, consultando o Mercado Pago.
-- **Vídeos protegidos.** Só quem comprou o curso (ou aula marcada como prévia grátis) consegue ler o link. Os
+- **Vídeos protegidos.** Só quem comprou o curso consegue ler o link. Os
   arquivos enviados ficam num bucket privado: só o admin envia ou apaga, e quem assiste recebe um link que expira
   em 2 horas. Para links externos, use YouTube "não listado", Vimeo ou Panda com domínio restrito.
   Nenhuma proteção impede alguém que comprou de gravar a tela.
@@ -245,6 +253,7 @@ Arquivos do servidor:
 - `supabase/migrations/0003_videos.sql`: bucket privado dos vídeos e quem pode assistir.
 - `supabase/migrations/0004_pagamentos_seguros.sql`: regras de pagamento, registro de eventos e conferência.
 - `supabase/migrations/0005_protecao_reembolso.sql`: liberação gradual das aulas e registro das aulas abertas.
+- `supabase/migrations/0006_apresentacao_do_curso.sql`: vídeo de apresentação de cada curso, aberto para todos.
 - `supabase/functions/criar-pagamento`: cria o pedido e o pagamento.
 - `supabase/functions/webhook-mercadopago`: confirma pagamentos, estornos e chargebacks.
 - `supabase/functions/conferir-pagamento`: confere pedidos direto no Mercado Pago (volta do aluno, painel e rotina).

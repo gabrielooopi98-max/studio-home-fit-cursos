@@ -101,6 +101,7 @@ home-fit-cursos/
 | `migrations/0003_videos.sql` | Local privado para os vídeos enviados pelo painel |
 | `migrations/0004_pagamentos_seguros.sql` | Regras de pagamento (valor, moeda, estornos), registro de eventos e conferência |
 | `migrations/0005_protecao_reembolso.sql` | Liberação gradual das aulas e registro das aulas abertas (contra "assistir tudo e pedir reembolso") |
+| `migrations/0006_apresentacao_do_curso.sql` | Vídeo de apresentação de cada curso (opcional, aberto para todos, antes do Módulo 1) |
 | `functions/criar-pagamento/` | Cria o pedido e abre o pagamento no Mercado Pago |
 | `functions/webhook-mercadopago/` | Recebe o aviso do Mercado Pago e libera (ou remove) os cursos |
 | `functions/conferir-pagamento/` | Consulta o Mercado Pago na volta do aluno, no painel e na rotina agendada |

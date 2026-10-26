@@ -3,7 +3,7 @@
 import { COURSES, PLANS } from '../dados/conteudo'
 import { getCurriculum } from '../dados/aulas'
 import { friendlyError, toCourse, toSettings } from './formatos'
-import { storedPath, toStoredRef, videoFileInfo, videoObjectPath } from './video'
+import { storedPath, toEmbedUrl, toStoredRef, videoFileInfo, videoObjectPath } from './video'
 
 export { friendlyError }
 
@@ -40,12 +40,12 @@ COURSES.forEach((c, i) => {
   db.courses.push({
     id, slug: c.id.replace(/^c-/, ''), title: c.title, tag: c.tag, level: c.level, description: c.description,
     image_url: `https://images.unsplash.com/${c.image}`, hours: c.hours, price: c.price, old_price: c.oldPrice,
-    bestseller: !!c.bestseller, published: true, position: i + 1, created_at: now(),
+    bestseller: !!c.bestseller, published: true, position: i + 1, intro_video_url: '', created_at: now(),
   })
   getCurriculum(c).forEach((m, mi) => {
     const mid = uid()
     db.modules.push({ id: mid, course_id: id, title: m.title, position: mi + 1 })
-    m.lessons.forEach((l, li) => db.lessons.push({ id: uid(), module_id: mid, course_id: id, title: l.title, duration: '', position: li + 1, is_preview: false }))
+    m.lessons.forEach((l, li) => db.lessons.push({ id: uid(), module_id: mid, course_id: id, title: l.title, duration: '', position: li + 1 }))
   })
 })
 const firstLesson = db.lessons[0]
@@ -196,6 +196,11 @@ export const backend = {
     db.progress = db.progress.filter((p) => !(p.user_id === userId && p.lesson_id === lessonId))
     if (done) db.progress.push({ user_id: userId, lesson_id: lessonId })
   },
+  async courseIntroUrl(course) {
+    await wait()
+    const path = storedPath(course.introVideo)
+    return path ? (files.get(path) ?? '') : toEmbedUrl(course.introVideo)
+  },
   // mesma regra do module_unlock_at do banco: 1º módulo na hora, o último no dia drip_days
   async getCourseUnlocks(courseId) {
     await wait()
@@ -218,7 +223,7 @@ export const backend = {
     const l = db.lessons.find((x) => x.id === lessonId)
     if (!l) err('Aula não encontrada')
     const unlocks = await backend.getCourseUnlocks(l.course_id)
-    if (!isAdmin() && !l.is_preview) {
+    if (!isAdmin()) {
       if (!unlocks[l.module_id]) err('Você não tem acesso a esta aula')
       if (new Date(unlocks[l.module_id]) > new Date()) return { locked: true, unlockAt: unlocks[l.module_id] }
       const v = db.views.find((x) => x.user_id === me() && x.lesson_id === lessonId)
@@ -338,10 +343,16 @@ export const backend = {
         saved = db.courses.find((c) => c.id === course.id)
         Object.assign(saved, row)
       } else {
-        saved = { id: uid(), created_at: now(), ...row }
+        saved = { id: uid(), created_at: now(), intro_video_url: '', ...row }
         db.courses.push(saved)
       }
       return toCourse({ ...saved, modules: [] })
+    },
+    async saveCourseIntro(courseId, value, before) {
+      requireAdmin()
+      await wait(40)
+      db.courses.find((c) => c.id === courseId).intro_video_url = value
+      if (storedPath(before) && before !== value) files.delete(storedPath(before))
     },
     async deleteCourse(id) {
       requireAdmin()
@@ -368,30 +379,30 @@ export const backend = {
     async setModulePositions(items) {
       items.forEach(({ id, position }) => Object.assign(db.modules.find((m) => m.id === id), { position }))
     },
-    async saveLesson({ id, moduleId, title, duration, position, isPreview, videoUrl }) {
+    async saveLesson({ id, moduleId, title, duration, position, videoUrl }) {
       requireAdmin()
       await wait(40)
       const mod = db.modules.find((m) => m.id === moduleId)
       let l
       if (id) {
         l = db.lessons.find((x) => x.id === id)
-        Object.assign(l, { module_id: moduleId, course_id: mod.course_id, title, duration, position, is_preview: isPreview })
+        Object.assign(l, { module_id: moduleId, course_id: mod.course_id, title, duration, position })
       } else {
-        l = { id: uid(), module_id: moduleId, course_id: mod.course_id, title, duration, position, is_preview: isPreview }
+        l = { id: uid(), module_id: moduleId, course_id: mod.course_id, title, duration, position }
         db.lessons.push(l)
       }
       const before = db.media.find((m) => m.lesson_id === l.id)?.video_url
       if (storedPath(before) && before !== videoUrl) files.delete(storedPath(before))
       db.media = db.media.filter((m) => m.lesson_id !== l.id)
       if (videoUrl) db.media.push({ lesson_id: l.id, course_id: l.course_id, video_url: videoUrl })
-      return { id: l.id, title, duration, position, isPreview: !!isPreview, videoUrl: videoUrl ?? '' }
+      return { id: l.id, title, duration, position, videoUrl: videoUrl ?? '' }
     },
     async addLessons(moduleId, titles, start) {
       const mod = db.modules.find((m) => m.id === moduleId)
       return titles.map((title, i) => {
-        const l = { id: uid(), module_id: moduleId, course_id: mod.course_id, title, duration: '', position: start + i, is_preview: false }
+        const l = { id: uid(), module_id: moduleId, course_id: mod.course_id, title, duration: '', position: start + i }
         db.lessons.push(l)
-        return { id: l.id, title, duration: '', position: l.position, isPreview: false, videoUrl: '' }
+        return { id: l.id, title, duration: '', position: l.position, videoUrl: '' }
       })
     },
     async deleteLesson(id) {

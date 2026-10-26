@@ -66,7 +66,11 @@ export function buildPreference({ order, siteUrl, payer, installments }) {
     back_urls: { success: back, pending: back, failure: back },
     auto_return: 'approved',
     statement_descriptor: 'HOMEFIT',
-    payment_methods: { installments: Math.min(24, Math.max(1, Math.round(installments || 1))) },
+    payment_methods: {
+      installments: Math.min(24, Math.max(1, Math.round(installments || 1))),
+      // só Pix e cartão: boleto ("ticket" no Mercado Pago) não aparece no pagamento
+      excluded_payment_types: [{ id: 'ticket' }],
+    },
     metadata: { order_id: order.id },
   }
 }

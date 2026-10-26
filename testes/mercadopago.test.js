@@ -67,6 +67,10 @@ describe('preferência do Checkout Pro', () => {
     assert.equal(pref.payer.phone.area_code, '64')
     assert.equal(pref.payment_methods.installments, 12)
   })
+
+  test('boleto fora: só Pix e cartão no pagamento', () => {
+    assert.deepEqual(pref.payment_methods.excluded_payment_types, [{ id: 'ticket' }])
+  })
 })
 
 describe('assinatura do webhook (x-signature)', () => {

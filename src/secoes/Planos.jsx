@@ -29,7 +29,7 @@ export default function Planos({ cartIds, onAdd }) {
     oldPrice: settings.comboOldPrice,
     note: `em até ${settings.comboInstallments}x no cartão`,
     features: settings.comboFeatures.map((f) => (/^todos os cursos$/i.test(f) ? `Todos os ${courses.length} cursos` : f)),
-    cta: 'Quero o combo',
+    cta: 'Quero o plano',
   }
   const inCart = cartIds.includes(PLAN.id)
   const saving = PLAN.oldPrice > PLAN.price ? PLAN.oldPrice - PLAN.price : 0
@@ -99,7 +99,7 @@ export default function Planos({ cartIds, onAdd }) {
                 <Icone name="infinity" size={16} /> Acesso vitalício, com as atualizações
               </li>
               <li>
-                <Icone name="creditCard" size={16} /> Pix, cartão ou boleto
+                <Icone name="creditCard" size={16} /> Pix ou cartão em até 12x
               </li>
             </ul>
 
@@ -148,20 +148,6 @@ export default function Planos({ cartIds, onAdd }) {
                 </li>
               ))}
             </ul>
-
-            <p className="offer__label">
-              Cursos inclusos <span className="offer__count">{courses.length}</span>
-            </p>
-            <ol className="offer__courses">
-              {courses.map((c, i) => (
-                <li key={c.id}>
-                  <span className="offer__num" aria-hidden="true">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  {c.title}
-                </li>
-              ))}
-            </ol>
           </div>
         </article>
 

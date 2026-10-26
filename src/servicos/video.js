@@ -62,8 +62,64 @@ export function videoObjectPath(courseId, lessonId, file, ext) {
   return `courses/${courseId}/${lessonId}/${key}-${base}.${ext}`
 }
 
-// Duração do arquivo (segundos), lida no próprio navegador antes do envio; null se não der para ler
-export function readVideoDuration(file) {
+/*
+  MP4, MOV e M4V: lê a duração direto do cabeçalho do arquivo (caixa "mvhd", dentro da "moov"),
+  sem precisar que o navegador consiga tocar o vídeo (ex.: vídeo de iPhone em HEVC no Chrome).
+  Lê só pedacinhos do arquivo: os cabeçalhos das caixas e a "moov", que fica no começo ou no fim.
+  Devolve os segundos ou null.
+*/
+export async function durationFromMp4(file) {
+  const read = async (start, length) => new DataView(await file.slice(start, start + length).arrayBuffer())
+  const typeAt = (dv, off) => String.fromCharCode(dv.getUint8(off), dv.getUint8(off + 1), dv.getUint8(off + 2), dv.getUint8(off + 3))
+
+  let pos = 0
+  for (let i = 0; i < 200 && pos + 8 <= file.size; i++) {
+    const head = await read(pos, 16)
+    let size = head.getUint32(0)
+    const type = typeAt(head, 4)
+    let headerSize = 8
+    if (size === 1) {
+      if (head.byteLength < 16) return null
+      size = Number(head.getBigUint64(8))
+      headerSize = 16
+    } else if (size === 0) {
+      size = file.size - pos
+    }
+    if (size < headerSize) return null
+
+    if (type === 'moov') {
+      const moov = await read(pos + headerSize, Math.min(size, 64 * 1024 * 1024) - headerSize)
+      for (let off = 0; off + 8 <= moov.byteLength; ) {
+        const childSize = moov.getUint32(off)
+        if (childSize < 8) return null
+        if (typeAt(moov, off + 4) === 'mvhd') {
+          if (off + 32 > moov.byteLength) return null
+          const version = moov.getUint8(off + 8)
+          const base = off + 12
+          const timescale = moov.getUint32(version === 1 ? base + 16 : base + 8)
+          const duration = version === 1 ? Number(moov.getBigUint64(base + 20)) : moov.getUint32(base + 12)
+          return timescale > 0 && duration > 0 ? Math.round(duration / timescale) : null
+        }
+        off += childSize
+      }
+      return null
+    }
+    pos += size
+  }
+  return null
+}
+
+// Duração do arquivo (segundos), lida no próprio computador antes do envio; null se não der para ler.
+// MP4/MOV/M4V pelo cabeçalho do arquivo; se não der (ou WebM), pelo player do navegador.
+export async function readVideoDuration(file) {
+  if (/\.(mp4|m4v|mov)$/i.test(file?.name ?? '') || /^video\/(mp4|quicktime)$/.test(file?.type ?? '')) {
+    const seconds = await durationFromMp4(file).catch(() => null)
+    if (seconds >= 1) return seconds
+  }
+  return durationFromPlayer(file)
+}
+
+function durationFromPlayer(file) {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file)
     const v = document.createElement('video')

@@ -51,8 +51,8 @@ export const TERMOS = {
           lista: [
             'Os preços são exibidos em reais (R$) e podem mudar a qualquer momento, sem afetar compras já confirmadas.',
             'O valor final é calculado no momento da compra, já com os descontos e o cupom aplicados. É possível usar um cupom por pedido, respeitando a validade e o limite de usos de cada cupom.',
-            'Os pagamentos (Pix, cartão de crédito e boleto) são processados pelo **Mercado Pago**. O Studio HomeFit não recebe nem armazena os dados do seu cartão.',
-            'O acesso é liberado automaticamente quando o Mercado Pago confirma o pagamento. No boleto, a confirmação pode levar até 3 dias úteis.',
+            'Os pagamentos (Pix e cartão de crédito) são processados pelo **Mercado Pago**. O Studio HomeFit não recebe nem armazena os dados do seu cartão.',
+            'O acesso é liberado automaticamente quando o Mercado Pago confirma o pagamento.',
           ],
         },
       ],

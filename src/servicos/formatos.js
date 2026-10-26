@@ -33,7 +33,6 @@ export const toLesson = (l) => ({
   title: l.title,
   duration: l.duration ?? '',
   position: l.position ?? 0,
-  isPreview: !!l.is_preview,
   videoUrl: (Array.isArray(l.lesson_media) ? l.lesson_media[0] : l.lesson_media)?.video_url ?? '',
 })
 
@@ -60,6 +59,9 @@ export const toCourse = (row) => {
     bestseller: !!row.bestseller,
     published: !!row.published,
     position: row.position ?? 0,
+    // apresentação do curso (0006_apresentacao_do_curso.sql): link ou "storage:..." ; '' = sem apresentação
+    introVideo: row.intro_video_url ?? '',
+    introSupported: 'intro_video_url' in row,
     curriculum,
     modules: curriculum.map((m) => m.title),
     lessons: curriculum.reduce((n, m) => n + m.lessons.length, 0),

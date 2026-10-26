@@ -168,9 +168,7 @@ export const COURSES = [
 
 export const COURSE_INCLUDES = [
   { icon: 'video', text: 'Aulas em vídeo 4K com múltiplos ângulos' },
-  { icon: 'book', text: 'Checklist de execução em PDF' },
   { icon: 'infinity', text: 'Acesso vitalício + atualizações' },
-  { icon: 'award', text: 'Certificado de conclusão' },
   { icon: 'message', text: 'Suporte para dúvidas na plataforma' },
 ]
 
@@ -234,10 +232,8 @@ export const PLANS = [
       'Acesso vitalício + atualizações',
       'Grupo exclusivo de alunos',
       'Análise de 3 vídeos do seu treino',
-      'Certificados de todos os cursos',
-      'Material de apoio em PDF',
     ],
-    cta: 'Quero o combo',
+    cta: 'Quero o plano',
   },
 ]
 
@@ -268,6 +264,6 @@ export const FAQ = [
   },
   {
     q: 'Quais as formas de pagamento?',
-    a: 'Pix, boleto e cartão de crédito em até 12x. O ambiente de pagamento é 100% seguro e criptografado.',
+    a: 'Pix e cartão de crédito em até 12x. O ambiente de pagamento é 100% seguro e criptografado.',
   },
 ]

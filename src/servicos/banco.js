@@ -8,7 +8,7 @@ import { SITE } from '../dados/site'
 import { getCurriculum } from '../dados/aulas'
 import { friendlyError, toCourse, toLesson, toSettings } from './formatos'
 import { courseDuration } from './duracao'
-import { VIDEO_BUCKET, storedPath, toStoredRef, videoFileInfo, videoObjectPath } from './video'
+import { VIDEO_BUCKET, storedPath, toEmbedUrl, toStoredRef, videoFileInfo, videoObjectPath } from './video'
 
 export { friendlyError }
 
@@ -84,7 +84,7 @@ const cleanSearch = (s) => String(s ?? '').replace(/[,()%*\\]/g, ' ').trim().sli
 // ---------------------------------------------------------------------------
 // Banco real (Supabase)
 // ---------------------------------------------------------------------------
-const CATALOG_SELECT = '*,modules(id,title,position,lessons(id,title,duration,position,is_preview))'
+const CATALOG_SELECT = '*,modules(id,title,position,lessons(id,title,duration,position))'
 
 // O cliente completo (login etc.) só é baixado quando precisa; os avisos de login
 // passam pelos ouvintes daqui, que podem se inscrever antes de o cliente existir.
@@ -233,6 +233,13 @@ const supabaseBackend = {
     const signed = await must(sb.storage.from(VIDEO_BUCKET).createSignedUrl(path, SIGNED_TTL))
     return { locked: false, url: signed.signedUrl }
   },
+  // Apresentação do curso (aberta para todos): link do vídeo pronto para tocar
+  async courseIntroUrl(course) {
+    const path = storedPath(course.introVideo)
+    if (!path) return toEmbedUrl(course.introVideo)
+    const signed = await must((await client()).storage.from(VIDEO_BUCKET).createSignedUrl(path, SIGNED_TTL))
+    return signed.signedUrl
+  },
   // Quando cada módulo do curso libera para o aluno logado: { idDoMódulo: data }
   async getCourseUnlocks(courseId) {
     const { data, error } = await (await client()).rpc('my_course_unlocks', { p_course_id: courseId })
@@ -303,7 +310,7 @@ const supabaseBackend = {
       const row = await must(
         (await client())
           .from('courses')
-          .select('*, modules(id, title, position, lessons(id, title, duration, position, is_preview, lesson_media(video_url)))')
+          .select('*, modules(id, title, position, lessons(id, title, duration, position, lesson_media(video_url)))')
           .eq('id', id)
           .single(),
       )
@@ -318,8 +325,14 @@ const supabaseBackend = {
     },
     async deleteCourse(id) {
       const media = await must((await client()).from('lesson_media').select('video_url').eq('course_id', id))
+      const course = await must((await client()).from('courses').select('*').eq('id', id).single())
       await must((await client()).from('courses').delete().eq('id', id))
-      await removeStoredVideos(media.map((m) => m.video_url))
+      await removeStoredVideos([...media.map((m) => m.video_url), course.intro_video_url ?? ''])
+    },
+    // Apresentação do curso: salva o link (ou o arquivo enviado) e apaga o arquivo antigo, se trocou
+    async saveCourseIntro(courseId, value, before) {
+      await must((await client()).from('courses').update({ intro_video_url: value }).eq('id', courseId))
+      if (before && before !== value) await removeStoredVideos([before])
     },
     async setCoursePositions(items) {
       const sb = await client()
@@ -338,8 +351,8 @@ const supabaseBackend = {
       const sb = await client()
       await Promise.all(items.map(({ id, position }) => must(sb.from('modules').update({ position }).eq('id', id))))
     },
-    async saveLesson({ id, moduleId, title, duration, position, isPreview, videoUrl }) {
-      const row = { title, duration: duration ?? '', position, is_preview: !!isPreview }
+    async saveLesson({ id, moduleId, title, duration, position, videoUrl }) {
+      const row = { title, duration: duration ?? '', position }
       const before = id ? (await must((await client()).from('lesson_media').select('video_url').eq('lesson_id', id).maybeSingle()))?.video_url : null
       const lesson = id
         ? await must((await client()).from('lessons').update({ ...row, module_id: moduleId }).eq('id', id).select('*').single())
@@ -498,7 +511,7 @@ const staticCourses = COURSES.map((c, i) => {
     id: m.id,
     title: m.title,
     position: mi + 1,
-    lessons: m.lessons.map((l, li) => ({ id: l.id, title: l.title, duration: l.duration, position: li + 1, isPreview: false, videoUrl: l.video ?? '' })),
+    lessons: m.lessons.map((l, li) => ({ id: l.id, title: l.title, duration: l.duration, position: li + 1, videoUrl: l.video ?? '' })),
   }))
   return {
     ...c,

@@ -1,13 +1,15 @@
 -- =============================================================================
 -- Studio HomeFit: proteção contra "assistir tudo e pedir reembolso"
--- Rode depois do 0001 ao 0004. Pode rodar de novo sem problema.
+-- Rode depois do 0001 ao 0004 (e o 0006 logo depois). Pode rodar de novo sem problema.
 --
 -- O direito de desistir em 7 dias (Código de Defesa do Consumidor, art. 49) continua
 -- valendo: nada aqui recusa reembolso. O que muda:
 --   * Liberação gradual: nas compras pagas, o 1º módulo de cada curso libera na hora e os
 --     outros vão abrindo até o dia escolhido no painel (padrão: 8º dia, depois do prazo de
 --     7 dias). Cursos liberados à mão pelo admin, compras de teste e cupons de 100% ficam
---     liberados por completo. Aulas de prévia grátis continuam abertas para todos.
+--     liberados por completo.
+--   * Sem "prévia grátis": nenhuma aula abre para quem não comprou (a opção saiu do painel;
+--     a coluna lessons.is_preview continua existindo, mas não libera mais nada).
 --   * Registro de consumo: o link de cada vídeo só sai pela função open_lesson, que confere
 --     se a aula já está liberada e registra a abertura (lesson_views). O link temporário de
 --     um arquivo do Storage só é gerado depois desse registro.
@@ -17,6 +19,9 @@
 -- -----------------------------------------------------------------------------
 -- Configuração (Painel > Configurações)
 -- -----------------------------------------------------------------------------
+
+-- prévia grátis desativada: desmarca as aulas que estavam abertas para visitantes
+update public.lessons set is_preview = false where is_preview;
 
 alter table public.settings add column if not exists drip_enabled boolean not null default true;
 alter table public.settings add column if not exists drip_days integer not null default 8;
@@ -141,9 +146,6 @@ begin
   if public.is_admin() then
     return true;
   end if;
-  if l.is_preview and exists (select 1 from public.courses c where c.id = l.course_id and c.published) then
-    return true;
-  end if;
   if auth.uid() is null then
     return false;
   end if;
@@ -218,8 +220,7 @@ create policy "vídeos: ler" on public.lesson_media
 
 /*
   Arquivo no Storage (courses/<curso>/<aula>/<arquivo>): pode gerar o link temporário?
-  Admin sempre; prévia grátis de curso publicado para todos; aluno só para aula liberada e
-  aberta pela open_lesson nos últimos 10 minutos.
+  Admin sempre; aluno só para aula liberada e aberta pela open_lesson nos últimos 10 minutos.
   Fica numa função (security definer) porque a regra do Storage também roda para visitantes,
   que não têm permissão de ler lesson_views diretamente.
 */
@@ -244,10 +245,6 @@ begin
   where id::text = split_part(p_name, '/', 3) and course_id::text = split_part(p_name, '/', 2);
   if l.id is null then
     return false;
-  end if;
-
-  if l.is_preview and exists (select 1 from public.courses c where c.id = l.course_id and c.published) then
-    return true;
   end if;
 
   return auth.uid() is not null

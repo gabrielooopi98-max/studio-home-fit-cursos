@@ -23,7 +23,7 @@ const COPY = {
     icon: 'clock',
     tone: 'wait',
     title: 'Aguardando a confirmação do pagamento',
-    text: 'Pix costuma confirmar em segundos; boleto, em até 2 dias úteis. Esta página atualiza sozinha e o acesso é liberado automaticamente.',
+    text: 'Pix e cartão costumam confirmar em segundos. Esta página atualiza sozinha e o acesso é liberado automaticamente.',
   },
   failed: {
     icon: 'alert',

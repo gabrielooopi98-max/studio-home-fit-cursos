@@ -420,6 +420,8 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
   const { notify } = useAdmin()
   const [title, setTitle] = useState(lesson.title)
   const [duration, setDuration] = useState(lesson.duration)
+  // duração preenchida a partir do arquivo de vídeo (até a pessoa editar o campo)
+  const [autoDuration, setAutoDuration] = useState(false)
   const [video, setVideo] = useState(lesson.videoUrl)
   const [state, setState] = useState('idle')
   const [upload, setUpload] = useState(null)
@@ -459,8 +461,7 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
       ...patch,
     }
     if (next.videoUrl) next.videoUrl = toEmbedUrl(next.videoUrl)
-    if (next.title === lesson.title && next.duration === lesson.duration && next.videoUrl === lesson.videoUrl && next.isPreview === lesson.isPreview)
-      return true
+    if (next.title === lesson.title && next.duration === lesson.duration && next.videoUrl === lesson.videoUrl) return true
     if (next.videoUrl && !isStoredVideo(next.videoUrl) && !isValidVideoUrl(next.videoUrl)) {
       setState('error')
       return false
@@ -492,7 +493,13 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
     abortRef.current = ctrl
     const startedAt = Date.now()
     setUpload({ name: file.name, sent: 0, total: file.size, eta: null })
+    // a duração é lida do próprio arquivo e aparece no campo na hora, antes de o envio terminar
     const fileSeconds = readVideoDuration(file)
+    fileSeconds.then((secs) => {
+      if (!secs || ctrl.signal.aborted) return
+      setDuration(formatClock(secs))
+      setAutoDuration(true)
+    })
     try {
       const ref = await backend.admin.uploadVideo({
         courseId,
@@ -542,12 +549,15 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
           aria-label={`Título da aula ${index + 1}`}
         />
         <input
-          className={`lrow__duration ${durationBad ? 'is-bad' : ''}`}
+          className={`lrow__duration ${durationBad ? 'is-bad' : ''} ${autoDuration ? 'is-auto' : ''}`}
           value={duration}
           maxLength={12}
           placeholder="Duração"
-          title="Ex.: 12:30, 1:05:00, 45min ou 1h20"
-          onChange={(e) => setDuration(e.target.value)}
+          title={autoDuration ? 'Duração lida do arquivo de vídeo (dá para editar)' : 'Ex.: 12:30, 1:05:00, 45min ou 1h20'}
+          onChange={(e) => {
+            setDuration(e.target.value)
+            setAutoDuration(false)
+          }}
           onBlur={() => commit()}
           aria-label="Duração"
         />
@@ -595,7 +605,6 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
         )}
       </div>
       <div className="lrow__side">
-        <Toggle checked={lesson.isPreview} onChange={(v) => commit({ isPreview: v })} label="Prévia grátis" />
         <span className={`lrow__state lrow__state--${state}`} aria-live="polite">
           {state === 'saving' ? 'Salvando…' : state === 'saved' ? 'Salvo' : state === 'error' ? (durationBad ? 'Duração inválida' : videoBad ? 'Link inválido' : 'Erro ao salvar') : ''}
         </span>
@@ -654,6 +663,259 @@ function BulkAdd({ onAdd, onClose }) {
         </div>
       </div>
     </div>
+  )
+}
+
+/*
+  Apresentação do curso (opcional): um vídeo enviado como arquivo, aberto para todos.
+  Fica antes do Módulo 1 na página do curso e na área do aluno. Salva sozinho, como as aulas.
+*/
+function IntroVideo({ course, setCourse, onPreview }) {
+  const { notify, refreshSite } = useAdmin()
+  const [busy, setBusy] = useState(false)
+  const [upload, setUpload] = useState(null)
+  const [over, setOver] = useState(false)
+  const [askRemove, setAskRemove] = useState(false)
+  // capa do vídeo enviado: link temporário + duração lida do próprio arquivo
+  const [thumb, setThumb] = useState({ ref: null, url: '', seconds: null })
+  const fileRef = useRef(null)
+  const abortRef = useRef(null)
+  const video = course.introVideo
+  const stored = isStoredVideo(video)
+
+  // tela fechada no meio do envio: cancela
+  useEffect(() => () => abortRef.current?.abort(), [])
+
+  // aviso ao fechar a aba no meio do envio
+  useEffect(() => {
+    if (!upload) return
+    const onUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onUnload)
+    return () => window.removeEventListener('beforeunload', onUnload)
+  }, [upload])
+
+  // link temporário para mostrar a capa do vídeo enviado
+  useEffect(() => {
+    if (!stored) return
+    let alive = true
+    backend.admin
+      .videoLink(video)
+      .then((url) => alive && setThumb({ ref: video, url, seconds: null }))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [video, stored])
+
+  // grava no curso (arquivo novo ou '' para remover); o arquivo antigo é apagado do servidor
+  const save = async (value) => {
+    setBusy(true)
+    try {
+      await backend.admin.saveCourseIntro(course.id, value, video)
+      setCourse((c) => ({ ...c, introVideo: value }))
+      refreshSite()
+      return true
+    } catch (e) {
+      notify(e.message, 'error')
+      return false
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const send = async (file) => {
+    if (!file || upload) return
+    const info = videoFileInfo(file)
+    if (info.error) {
+      notify(info.error, 'error')
+      return
+    }
+    const ctrl = new AbortController()
+    abortRef.current = ctrl
+    const startedAt = Date.now()
+    setUpload({ name: file.name, sent: 0, total: file.size, eta: null })
+    try {
+      const ref = await backend.admin.uploadVideo({
+        courseId: course.id,
+        lessonId: 'apresentacao',
+        file,
+        signal: ctrl.signal,
+        onProgress: (sent, size) => {
+          const elapsed = (Date.now() - startedAt) / 1000
+          const eta = sent > 0 && elapsed > 2 ? Math.round(((size - sent) * elapsed) / sent) : null
+          setUpload((u) => u && { ...u, sent, total: size, eta })
+        },
+      })
+      if (await save(ref)) notify('Vídeo de apresentação publicado na página do curso.')
+    } catch (err) {
+      if (err.name !== 'AbortError') notify(err.message, 'error')
+    } finally {
+      if (abortRef.current === ctrl) abortRef.current = null
+      setUpload(null)
+    }
+  }
+
+  const pick = () => fileRef.current?.click()
+
+  const remove = async () => {
+    setAskRemove(false)
+    if (await save('')) notify('Apresentação removida do curso.')
+  }
+
+  // arrastar e soltar o arquivo na área
+  const dropProps = {
+    onDragOver: (e) => {
+      e.preventDefault()
+      setOver(true)
+    },
+    onDragLeave: () => setOver(false),
+    onDrop: (e) => {
+      e.preventDefault()
+      setOver(false)
+      send(e.dataTransfer.files?.[0])
+    },
+  }
+
+  if (!course.introSupported) {
+    return (
+      <p className="xwarn intro-video__warn">
+        <Icone name="alert" size={16} />
+        <span>
+          Para ter o vídeo de apresentação do curso, rode o arquivo <code>supabase/migrations/0006_apresentacao_do_curso.sql</code> no
+          SQL Editor do Supabase e recarregue esta página.
+        </span>
+      </p>
+    )
+  }
+
+  const seconds = thumb.ref === video ? thumb.seconds : null
+
+  return (
+    <section className="intro-video" aria-labelledby="intro-video-title">
+      <header className="intro-video__head">
+        <span className="intro-video__icon" aria-hidden="true">
+          <Icone name="video" size={20} />
+        </span>
+        <div className="intro-video__heading">
+          <h2 id="intro-video-title">
+            Apresentação do curso <em className="xbadge">Opcional</em>
+          </h2>
+          <p>Aparece antes do Módulo 1, na página do curso e na área do aluno.</p>
+        </div>
+        <span className={`intro-video__status ${video ? 'is-on' : ''}`}>
+          <Icone name={video ? 'eye' : 'eyeOff'} size={14} /> {video ? 'Visível para todos' : 'Sem apresentação'}
+        </span>
+      </header>
+
+      <div className="intro-video__body">
+        <input type="file" ref={fileRef} accept={VIDEO_ACCEPT} onChange={(e) => (send(e.target.files?.[0]), (e.target.value = ''))} hidden />
+
+        <div className="intro-video__main">
+          {upload ? (
+            <div className="intro-video__uploading">
+              <UploadProgress upload={upload} onCancel={() => abortRef.current?.abort()} />
+            </div>
+          ) : stored ? (
+            <div className="intro-preview" {...dropProps}>
+              <button type="button" className="intro-preview__thumb" onClick={() => onPreview(video)} aria-label="Assistir a apresentação">
+                {thumb.ref === video && thumb.url && (
+                  <video
+                    src={`${thumb.url}#t=0.5`}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    onLoadedMetadata={(e) => {
+                      // lê a duração agora: dentro do setThumb o evento já terminou
+                      const d = e.currentTarget.duration
+                      setThumb((t) => ({ ...t, seconds: Number.isFinite(d) ? Math.round(d) : null }))
+                    }}
+                  />
+                )}
+                <span className="intro-preview__play" aria-hidden="true">
+                  <Icone name="play" size={20} />
+                </span>
+              </button>
+              <div className="intro-preview__info">
+                <span className="intro-preview__ok">
+                  <Icone name="checkCircle" size={14} /> Publicado
+                </span>
+                <strong title={storedName(video)}>{storedName(video)}</strong>
+                <span className="intro-preview__meta">{seconds ? `Duração ${formatClock(seconds)}` : 'Vídeo enviado'}</span>
+                <div className="intro-preview__actions">
+                  <button type="button" className="btn btn--outline btn--sm" onClick={() => onPreview(video)}>
+                    <Icone name="play" size={14} /> Assistir
+                  </button>
+                  <button type="button" className="btn btn--outline btn--sm" onClick={pick} disabled={busy}>
+                    <Icone name="refresh" size={14} /> Trocar vídeo
+                  </button>
+                  <button type="button" className="btn btn--outline btn--sm intro-preview__remove" onClick={() => setAskRemove(true)} disabled={busy}>
+                    <Icone name="trash" size={14} /> Remover
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              {video && (
+                <p className="xwarn intro-video__legacy">
+                  <Icone name="alert" size={16} />
+                  <span>
+                    Esta apresentação usa um link de vídeo, que não é mais aceito. Envie o arquivo para substituir, ou{' '}
+                    <button type="button" className="linklike" onClick={() => setAskRemove(true)}>
+                      remova o link
+                    </button>
+                    .
+                  </span>
+                </p>
+              )}
+              <button type="button" className={`intro-drop ${over ? 'is-over' : ''}`} onClick={pick} {...dropProps}>
+                <span className="intro-drop__icon" aria-hidden="true">
+                  <Icone name="upload" size={24} />
+                </span>
+                <strong>Arraste o vídeo aqui ou clique para escolher</strong>
+                <small>MP4, WebM ou MOV</small>
+                <span className="btn btn--primary btn--sm intro-drop__btn">Escolher vídeo</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        <aside className="intro-video__tips" aria-label="Dicas para gravar">
+          <p>Dicas para gravar</p>
+          <ul>
+            <li>
+              <Icone name="target" size={15} /> Diga para quem é o curso e o que a pessoa vai aprender
+            </li>
+            <li>
+              <Icone name="clock" size={15} /> De 1 a 3 minutos é o ideal
+            </li>
+            <li>
+              <Icone name="video" size={15} /> Grave na horizontal, com boa luz e som
+            </li>
+            <li>
+              <Icone name="upload" size={15} /> Até 50 MB no plano grátis do Supabase
+            </li>
+          </ul>
+        </aside>
+      </div>
+
+      <Confirm
+        open={askRemove}
+        title="Remover a apresentação do curso?"
+        text={
+          stored
+            ? `O arquivo "${storedName(video)}" é apagado do servidor e a apresentação some da página do curso.`
+            : 'A apresentação some da página do curso.'
+        }
+        confirmLabel="Remover"
+        busy={busy}
+        onConfirm={remove}
+        onCancel={() => setAskRemove(false)}
+      />
+    </section>
   )
 }
 
@@ -720,7 +982,6 @@ function ContentTab({ course, setCourse }) {
         title: `Aula ${mod.lessons.length + 1}`,
         duration: '',
         position: mod.lessons.length + 1,
-        isPreview: false,
         videoUrl: '',
       })
       setModules((ms) => ms.map((m) => (m.id === mod.id ? { ...m, lessons: [...m.lessons, l] } : m)))
@@ -796,6 +1057,8 @@ function ContentTab({ course, setCourse }) {
           link do YouTube, Vimeo ou Panda.
         </p>
       </div>
+
+      <IntroVideo course={course} setCourse={setCourse} onPreview={openPreview} />
 
       {modules.length === 0 && (
         <Card>

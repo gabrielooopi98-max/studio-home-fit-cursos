@@ -98,7 +98,6 @@ function Shell({ section, id }) {
         <aside className="adm__side" aria-label="Menu do painel">
           <div className="adm__brand">
             <Logo light className="adm__logo" />
-            <span>Painel ADM</span>
           </div>
           <nav>
             <ul>

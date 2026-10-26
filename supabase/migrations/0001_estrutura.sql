@@ -2,7 +2,7 @@
 -- Studio HomeFit: banco de dados (Supabase / PostgreSQL)
 --
 -- Como usar: Supabase > SQL Editor > New query > cole este arquivo inteiro > Run.
--- Depois rode o 0002, o 0003, o 0004 e o 0005, nessa ordem (eles substituem algumas regras daqui).
+-- Depois rode o 0002, o 0003, o 0004, o 0005 e o 0006, nessa ordem (eles substituem algumas regras daqui).
 --
 -- Segurança:
 --   * RLS (Row Level Security) ligado em TODAS as tabelas.

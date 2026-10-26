@@ -8,6 +8,9 @@ import { isFileVideo, isPlayableUrl, toEmbedUrl } from '../servicos/video'
 import { useAuth, useLibrary, useStore } from '../estado/hooks'
 
 const percent = (part, total) => (total ? Math.round((part / total) * 100) : 0)
+
+// id da apresentação do curso no player (não é uma aula do banco)
+const INTRO_ID = 'apresentacao'
 const flatLessons = (curriculum) => curriculum.flatMap((mod) => mod.lessons.map((l) => ({ ...l, module: mod })))
 
 // "12/11 às 14:05" (quando uma aula da liberação gradual abre)
@@ -298,27 +301,34 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
     }
   }, [course.id, isAdmin])
   const lockedUntil = (mod) => (unlocks[mod.id] && Date.parse(unlocks[mod.id]) > now ? unlocks[mod.id] : null)
-  const lessons = all.map((l) => ({ ...l, lockedUntil: l.isPreview ? null : lockedUntil(l.module) }))
+  const lessons = all.map((l) => ({ ...l, lockedUntil: lockedUntil(l.module) }))
 
-  // abre na primeira aula ainda não concluída
-  const [currentId, setCurrentId] = useState(() => (lessons.find((l) => !done.includes(l.id)) ?? lessons[0])?.id)
-  const lessonId = (lessons.find((l) => l.id === currentId) ?? lessons[0])?.id
+  // apresentação do curso (opcional): vem antes do Módulo 1, nunca fecha e não conta no progresso
+  const intro = course.introVideo ? { id: INTRO_ID, title: 'Apresentação do curso', isIntro: true } : null
+  const nav = intro ? [intro, ...lessons] : lessons
+
+  // abre na apresentação quando o aluno ainda não começou; senão, na primeira aula não concluída
+  const [currentId, setCurrentId] = useState(() =>
+    intro && !lessons.some((l) => done.includes(l.id)) ? INTRO_ID : (lessons.find((l) => !done.includes(l.id)) ?? nav[0])?.id,
+  )
+  const lessonId = (nav.find((l) => l.id === currentId) ?? nav[0])?.id
 
   // vídeo da aula aberta: pedido um por um; o banco confere a liberação e registra a abertura
   const [media, setMedia] = useState({ lessonId: null })
   useEffect(() => {
     if (!lessonId) return
     let alive = true
-    backend
-      .openLesson(lessonId)
+    const pedido =
+      lessonId === INTRO_ID ? backend.courseIntroUrl(course).then((url) => ({ locked: false, url })) : backend.openLesson(lessonId)
+    pedido
       .then((r) => alive && setMedia({ lessonId, ...r }))
       .catch((e) => alive && setMedia({ lessonId, locked: false, url: '', error: e.message }))
     return () => {
       alive = false
     }
-  }, [lessonId])
+  }, [lessonId, course])
 
-  if (!lessons.length) {
+  if (!nav.length) {
     return (
       <Notice
         top={{ back: { href: '#/meus-cursos', label: 'Meus cursos' }, title: course.title }}
@@ -334,10 +344,10 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
     )
   }
 
-  const index = Math.max(0, lessons.findIndex((l) => l.id === lessonId))
-  const lesson = lessons[index]
-  const prev = lessons[index - 1]
-  const next = lessons[index + 1]
+  const index = Math.max(0, nav.findIndex((l) => l.id === lessonId))
+  const lesson = nav[index]
+  const prev = nav[index - 1]
+  const next = nav[index + 1]
   const isDone = done.includes(lesson.id)
   // aula fechada pela liberação gradual (pela data conhecida ou pela resposta do banco)
   const locked = !!lesson.lockedUntil || (media.lessonId === lesson.id && media.locked)
@@ -359,26 +369,33 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
       <section className="player">
         <div className="container player__grid">
           <div className="player__main">
-            <Video lesson={lesson} course={course} media={media} onEnded={() => onMarkDone(lesson.id)} />
+            <Video
+              lesson={lesson}
+              course={course}
+              media={media}
+              onEnded={() => !lesson.isIntro && onMarkDone(lesson.id)}
+            />
 
             <div className="player__info">
               <div>
                 <p className="player__module">
-                  Módulo {curriculum.indexOf(lesson.module) + 1} · {lesson.module.title}
+                  {lesson.isIntro ? 'Antes de começar' : `Módulo ${curriculum.indexOf(lesson.module) + 1} · ${lesson.module.title}`}
                 </p>
                 <h2 className="player__title">{lesson.title}</h2>
               </div>
 
               <div className="player__actions">
-                <button
-                  type="button"
-                  className={`btn btn--sm ${isDone ? 'btn--done' : 'btn--outline'}`}
-                  onClick={() => onToggleDone(lesson.id)}
-                  aria-pressed={isDone}
-                  disabled={locked && !isDone}
-                >
-                  <Icone name="check" size={16} strokeWidth={3} /> {isDone ? 'Aula concluída' : 'Marcar como concluída'}
-                </button>
+                {!lesson.isIntro && (
+                  <button
+                    type="button"
+                    className={`btn btn--sm ${isDone ? 'btn--done' : 'btn--outline'}`}
+                    onClick={() => onToggleDone(lesson.id)}
+                    aria-pressed={isDone}
+                    disabled={locked && !isDone}
+                  >
+                    <Icone name="check" size={16} strokeWidth={3} /> {isDone ? 'Aula concluída' : 'Marcar como concluída'}
+                  </button>
+                )}
                 <div className="player__nav">
                   <button
                     type="button"
@@ -393,12 +410,16 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
                     type="button"
                     className="btn btn--sm btn--primary"
                     onClick={() => {
-                      if (!locked) onMarkDone(lesson.id)
+                      if (!locked && !lesson.isIntro) onMarkDone(lesson.id)
                       // `?.`: o React Compiler usa o id como dependência do handler (lido no render)
                       if (next) go(next?.id)
                     }}
                   >
-                    {next ? (
+                    {lesson.isIntro && next ? (
+                      <>
+                        Começar o curso <Icone name="arrowRight" size={16} />
+                      </>
+                    ) : next ? (
                       <>
                         Próxima aula <Icone name="arrowRight" size={16} />
                       </>
@@ -425,6 +446,29 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
             </div>
 
             <div className="player__modules">
+              {intro && (
+                <section className="pmod pmod--intro">
+                  <h3 className="pmod__title">
+                    <span>Apresentação</span>
+                    Antes de começar
+                  </h3>
+                  <ol className="pmod__lessons">
+                    <li>
+                      <button
+                        type="button"
+                        className={`plesson ${lesson.isIntro ? 'is-current' : ''}`}
+                        onClick={() => go(INTRO_ID)}
+                        aria-current={lesson.isIntro ? 'true' : undefined}
+                      >
+                        <span className="plesson__status" aria-hidden="true">
+                          <Icone name="play" size={12} />
+                        </span>
+                        <span className="plesson__title">Apresentação do curso</span>
+                      </button>
+                    </li>
+                  </ol>
+                </section>
+              )}
               {curriculum.map((mod, m) => {
                 const modDone = mod.lessons.filter((l) => done.includes(l.id)).length
                 const modLocked = lockedUntil(mod)
@@ -449,7 +493,7 @@ function Player({ course, done, isAdmin, onToggleDone, onMarkDone }) {
                       {mod.lessons.map((l) => {
                         const current = l.id === lesson.id
                         const lDone = done.includes(l.id)
-                        const lLocked = modLocked && !l.isPreview
+                        const lLocked = !!modLocked
                         return (
                           <li key={l.id}>
                             <button

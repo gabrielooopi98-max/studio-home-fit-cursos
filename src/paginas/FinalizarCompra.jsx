@@ -338,7 +338,7 @@ export default function FinalizarCompra({ items, onClose, onComplete, onClearCar
                       ) : (
                         <>
                           Você vai para o <strong>ambiente seguro do Mercado Pago</strong> e escolhe lá: Pix (aprovação na
-                          hora), cartão em até 12x ou boleto. Os dados do cartão nunca passam pelo nosso site.
+                          hora) ou cartão em até 12x. Os dados do cartão nunca passam pelo nosso site.
                         </>
                       )}
                     </p>

@@ -5,6 +5,7 @@
 */
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { before, describe, test } from 'node:test'
 import { bancoDasFuncoes, como, criarBancoDeTeste, criarUsuario, idDoCurso, tentar } from './apoio/banco-de-teste.js'
 
@@ -161,18 +162,27 @@ describe('liberação gradual', () => {
     assert.equal((await resultado(gratis, ultimo)).locked, false)
   })
 
-  test('aula de prévia grátis abre para qualquer um, até sem login', async () => {
+  test('sem prévia grátis: aula marcada como prévia no banco (coluna antiga) não abre para quem não comprou', async () => {
     const mods = await modulosDo('terra')
-    const previa = mods.at(-1)[0]
-    await pg.query('update lessons set is_preview = true where id = $1', [previa])
+    const marcada = mods.at(-1)[0]
+    await pg.query('update lessons set is_preview = true where id = $1', [marcada])
     try {
-      assert.equal((await tentar(como(pg, 'anon')('select public.open_lesson($1) as r', [previa]))).rows[0].r.locked, false)
+      assert.match((await tentar(como(pg, 'anon')('select public.open_lesson($1)', [marcada]))).error, /não tem acesso/)
+      assert.match((await resultado(await novoAluno(), marcada)).erro, /não tem acesso/)
+      // e para quem comprou, segue a liberação gradual como qualquer outra aula
       const aluno = await novoAluno()
       await comprar(aluno, { slug: 'terra' })
-      assert.equal((await resultado(aluno, previa)).locked, false)
+      assert.equal((await resultado(aluno, marcada)).locked, true)
     } finally {
-      await pg.query('update lessons set is_preview = false where id = $1', [previa])
+      await pg.query('update lessons set is_preview = false where id = $1', [marcada])
     }
+  })
+
+  test('a migração desmarca as aulas que estavam como prévia grátis', async () => {
+    const aula = (await modulosDo('agachamento'))[0][0]
+    await pg.query('update lessons set is_preview = true where id = $1', [aula])
+    await pg.exec(readFileSync(new URL('../supabase/migrations/0005_protecao_reembolso.sql', import.meta.url), 'utf8'))
+    assert.equal((await pg.query('select count(*)::int as n from lessons where is_preview')).rows[0].n, 0)
   })
 
   test('quem não comprou não abre nenhuma aula (nem a do 1º módulo)', async () => {
@@ -239,23 +249,20 @@ describe('registro das aulas abertas e link do vídeo', () => {
     assert.deepEqual(await arquivos(), [], 'link novo exige abrir a aula de novo')
   })
 
-  test('visitante: a regra do Storage não dá erro, a prévia grátis abre e o resto não', async () => {
+  test('visitante: a regra do Storage não dá erro e nenhum vídeo sai (nem de aula marcada como prévia)', async () => {
     const mods = await modulosDo('fundamentos')
-    const [previa, fechada] = [mods.at(-1)[0], mods.at(-1)[1] ?? mods[0][0]]
-    for (const aula of [previa, fechada]) {
+    const [marcada, outra] = [mods.at(-1)[0], mods.at(-1)[1] ?? mods[0][0]]
+    for (const aula of [marcada, outra]) {
       await pg.query(`insert into storage.objects (bucket_id, name) values ('lesson-videos', $1)`, [`courses/${cursos.fundamentos}/${aula}/visitante.mp4`])
     }
     await pg.query(`insert into storage.objects (bucket_id, name) values ('course-images', 'capa-visitante.webp')`)
-    await pg.query('update lessons set is_preview = true where id = $1', [previa])
+    await pg.query('update lessons set is_preview = true where id = $1', [marcada])
     try {
       const r = await tentar(como(pg, 'anon')(`select bucket_id, name from storage.objects where name like '%visitante%'`))
       assert.equal(r.error, null, 'ler o Storage como visitante não pode dar erro')
-      assert.deepEqual(
-        r.rows.map((x) => x.name.split('/')[2]),
-        [previa],
-      )
+      assert.deepEqual(r.rows, [])
     } finally {
-      await pg.query('update lessons set is_preview = false where id = $1', [previa])
+      await pg.query('update lessons set is_preview = false where id = $1', [marcada])
     }
   })
 

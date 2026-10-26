@@ -96,7 +96,7 @@ function SettingsForm({ initial }) {
                 Use só para testar o site e o painel. Desligue antes de divulgar.
               </>
             ) : (
-              <>As compras vão para o Mercado Pago (Pix, cartão e boleto). O acesso é liberado quando o pagamento é aprovado.</>
+              <>As compras vão para o Mercado Pago (Pix e cartão). O acesso é liberado quando o pagamento é aprovado.</>
             )}
           </p>
         </div>

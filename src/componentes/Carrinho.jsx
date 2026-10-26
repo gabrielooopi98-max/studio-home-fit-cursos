@@ -135,7 +135,7 @@ export default function Carrinho({ open, items, onClose, onRemove, onCheckout })
                 <span>Total</span>
                 <strong>{formatBRL(total)}</strong>
               </div>
-              <p className="drawer__installments">Pix, boleto ou cartão em até 12x</p>
+              <p className="drawer__installments">Pix ou cartão em até 12x</p>
               <button type="button" className="btn btn--primary btn--block btn--lg" onClick={onCheckout}>
                 <Icone name="lock" size={18} /> Finalizar compra segura
               </button>
@@ -147,7 +147,7 @@ export default function Carrinho({ open, items, onClose, onRemove, onCheckout })
                   <Icone name="shield" size={15} /> Garantia de 7 dias
                 </span>
                 <span>
-                  <Icone name="lock" size={15} /> SSL 256 bits
+                  <Icone name="lock" size={15} /> Pagamento seguro
                 </span>
               </div>
               <FormasDePagamento compact />

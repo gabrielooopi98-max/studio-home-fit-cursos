@@ -31,10 +31,9 @@
   gap: 6px;
   padding: 6px;
   border-radius: 999px;
-  /* preto sólido com leve degradê: igual sobre qualquer fundo (antes era translúcido e ficava cinza no banner) */
-  background: linear-gradient(180deg, #1a1b20, #0c0d10);
-  border: 1px solid rgb(255 255 255 / 0.1);
-  backdrop-filter: saturate(180%) blur(16px);
+  /* preto sólido com rabiscos claros (traços de pincel, sem pontos); igual sobre qualquer fundo */
+  background: url('../../imagens/rabiscos-cabecalho.svg') left center / 640px 64px repeat-x #0d0e11;
+  border: 1px solid rgb(255 255 255 / 0.12);
   /* filete de luz no topo + sombra: a cápsula parece uma peça sólida */
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.08),
@@ -454,10 +453,11 @@
       box-shadow 0.3s;
   }
 
+  /* barra branca com rabiscos escuros bem suaves (sem pontos) e filete azul na base */
   .header--solido {
-    background: #ffffff;
+    background: url('../../imagens/rabiscos-cabecalho-escuro.svg') left center / 640px 64px repeat-x #ffffff;
     box-shadow:
-      0 1px 0 #e4e6ea,
+      inset 0 -2px 0 #1f5bff,
       0 10px 24px -18px rgb(10 10 11 / 0.35);
   }
 

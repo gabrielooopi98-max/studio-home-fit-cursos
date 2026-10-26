@@ -7,7 +7,6 @@ const METHODS = [
   { id: 'master', label: 'Mastercard' },
   { id: 'elo', label: 'elo' },
   { id: 'amex', label: 'AMEX' },
-  { id: 'boleto', label: 'Boleto' },
 ]
 
 export function FormasDePagamento({ compact = false }) {
@@ -30,10 +29,10 @@ export function FormasDePagamento({ compact = false }) {
 }
 
 const BADGES = [
-  { icon: 'lock', title: 'Site 100% seguro', text: 'Criptografia SSL 256 bits' },
-  { icon: 'shield', title: 'Garantia de 7 dias', text: 'Seu dinheiro de volta' },
-  { icon: 'idCard', title: 'Dados protegidos', text: 'Em conformidade com a LGPD' },
-  { icon: 'zap', title: 'Acesso imediato', text: 'Liberação após o pagamento' },
+  { icon: 'lock', title: 'Site 100% seguro' },
+  { icon: 'shield', title: 'Garantia de 7 dias' },
+  { icon: 'idCard', title: 'Dados protegidos' },
+  { icon: 'zap', title: 'Acesso imediato' },
 ]
 
 export function BarraDeSeguranca() {
@@ -45,10 +44,7 @@ export function BarraDeSeguranca() {
             <span className="secure-badge__icon">
               <Icone name={b.icon} size={20} />
             </span>
-            <div>
-              <strong>{b.title}</strong>
-              <span>{b.text}</span>
-            </div>
+            <strong>{b.title}</strong>
           </div>
         ))}
       </div>
