@@ -15,7 +15,7 @@ export function FormasDePagamento({ compact = false }) {
       {METHODS.map((m) => (
         <li key={m.id} className={`paymethod paymethod--${m.id}`}>
           {m.id === 'master' ? (
-            <span className="paymethod__mc" aria-label="Mastercard">
+            <span className="paymethod__mc" role="img" aria-label="Mastercard">
               <i />
               <i />
             </span>

@@ -10,6 +10,8 @@ export function FaixaDeBeneficios() {
       <span className="decor shape shape--xo benefits__xo" aria-hidden="true" />
       <span className="decor shape shape--squares benefits__squares" aria-hidden="true" />
 
+      {/* título só para leitores de tela: os cards abaixo são h3 e precisam de um h2 antes */}
+      <h2 className="sr-only">Vantagens dos cursos</h2>
       <div className="container benefits__grid">
         {BENEFITS.map((b) => (
           <div className="benefit" key={b.title}>

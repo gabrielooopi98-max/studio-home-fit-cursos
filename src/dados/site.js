@@ -13,7 +13,7 @@ export const SITE = {
 // Imagens dos cursos: código do Unsplash ("photo-..."), link do Unsplash ou link qualquer (ex.: enviada no painel).
 // No Unsplash pede o formato automático (WebP/AVIF) na largura certa; outros links ficam como estão.
 const UNSPLASH = 'https://images.unsplash.com/'
-const isUnsplash = (src) => !/^https?:/.test(src) || src.startsWith(UNSPLASH)
+const isUnsplash = (src) => src.startsWith(UNSPLASH) || !/^(https?|blob|data):/.test(src)
 
 export const img = (src, w = 900) => {
   if (!src) return ''

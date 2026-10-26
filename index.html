@@ -28,14 +28,16 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Fontes: uma requisição só, apenas os pesos usados -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!--
+      Fontes hospedadas no próprio site (publico/fontes): as duas usadas logo no banner
+      começam a baixar junto com a página, sem esperar o CSS.
+    -->
+    <link rel="preload" href="/fontes/montserrat-variavel.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fontes/barlow-500.woff2" as="font" type="font/woff2" crossorigin />
+    <!-- textura do painel do banner (o maior elemento da tela): baixa sem esperar o CSS -->
+    <link rel="preload" href="/src/imagens/tinta-textura.svg" as="image" type="image/svg+xml" />
+    <!-- fotos dos cursos (Unsplash): conexão aberta antes de precisar -->
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap"
-      rel="stylesheet"
-    />
   </head>
   <body>
     <div id="root"></div>

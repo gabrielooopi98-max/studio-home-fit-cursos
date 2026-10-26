@@ -1,3 +1,49 @@
+/*
+  Fontes hospedadas no próprio site (publico/fontes), só com os caracteres latinos, que cobrem o
+  português. Sem depender do Google, o navegador não abre conexão com outros servidores antes de
+  desenhar o texto. Montserrat é uma fonte variável: um arquivo só para os pesos 600 a 900.
+  Licença das duas fontes: SIL Open Font License 1.1.
+*/
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 600 900;
+  font-display: swap;
+  src: url('/fontes/montserrat-variavel.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fontes/barlow-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fontes/barlow-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fontes/barlow-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Barlow';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fontes/barlow-800.woff2') format('woff2');
+}
+
 *,
 *::before,
 *::after {

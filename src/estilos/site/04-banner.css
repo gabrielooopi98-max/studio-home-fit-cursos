@@ -49,7 +49,14 @@
     linear-gradient(rgb(236 238 242 / 0.6), rgb(236 238 242 / 0.6)),
     #eceef2 url('../../imagens/tinta-textura.svg') center / cover no-repeat;
   clip-path: polygon(10% 0, 98% 0, 76% 100%, 0 100%);
-  animation: panelIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  /* só desliza (sem começar invisível): é o maior elemento da tela e aparece já no primeiro quadro */
+  animation: panelSlide 0.9s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes panelSlide {
+  from {
+    transform: translateX(-60px);
+  }
 }
 
 /* Camadas paralelas à borda direita, como as setas do logo: faixa azul e filete branco */
@@ -713,7 +720,8 @@
     width: 100%;
     bottom: calc(var(--visual-h) - 70px);
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - 64px), 0 100%);
-    animation-name: fadeIn;
+    /* fundo da tela: aparece pronto, sem animação */
+    animation: none;
   }
 
   /* faixa azul paralela logo abaixo da diagonal (caixa 20px mais alta que o painel) */

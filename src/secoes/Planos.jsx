@@ -74,7 +74,9 @@ export default function Planos({ cartIds, onAdd }) {
                   De <s>{formatBRL(PLAN.oldPrice)}</s> por
                 </p>
               )}
-              <strong className="offer__price" aria-label={formatBRL(PLAN.price)}>
+              <strong className="offer__price">
+                {/* leitor de tela lê o preço inteiro; o visual com R$ e centavos menores fica escondido dele */}
+                <span className="sr-only">{formatBRL(PLAN.price)}</span>
                 <span className="offer__cur" aria-hidden="true">
                   R$
                 </span>

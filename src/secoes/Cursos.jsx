@@ -13,7 +13,8 @@ function CourseCard({ course, inCart, owned, onAdd }) {
 
   return (
     <article className="course">
-      <a href={pagina} className="course__media" aria-label={`Ver o curso ${course.title}`}>
+      {/* foto clicável para o mouse; teclado e leitor de tela usam o link do título (mesmo destino) */}
+      <a href={pagina} className="course__media" tabIndex={-1} aria-hidden="true">
         <img
           src={img(course.image, 700)}
           srcSet={imgSet(course.image)}

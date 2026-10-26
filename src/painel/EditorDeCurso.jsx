@@ -256,7 +256,7 @@ function InfoTab({ draft, setDraft, errors, isNew, duration, savedSlug }) {
         >
           <ul className="cover__tips">
             <li>Foto deitada, de preferência 1200 × 800.</li>
-            <li>JPG, PNG ou WebP, até 5 MB.</li>
+            <li>JPG, PNG ou WebP. O site reduz e compacta a foto sozinho antes de enviar.</li>
             <li>Deixe o exercício no meio da foto.</li>
           </ul>
           <div className="cover">

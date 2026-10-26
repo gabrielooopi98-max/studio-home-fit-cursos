@@ -8,17 +8,33 @@
     <meta name="theme-color" content="#0a0a0b" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;700&family=Montserrat:wght@900&display=swap"
-      rel="stylesheet"
-    />
     <!--
       Página de erro servida pela hospedagem (Netlify, Vercel, GitHub Pages...) quando o
       endereço não existe. Dentro do site, o próprio app mostra a mesma página (rota #/404).
+      Fontes: as mesmas do site, hospedadas em /fontes.
     -->
     <style>
+      @font-face {
+        font-family: 'Montserrat';
+        font-weight: 600 900;
+        font-display: swap;
+        src: url('/fontes/montserrat-variavel.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 500;
+        font-display: swap;
+        src: url('/fontes/barlow-500.woff2') format('woff2');
+      }
+
+      @font-face {
+        font-family: 'Barlow';
+        font-weight: 700;
+        font-display: swap;
+        src: url('/fontes/barlow-700.woff2') format('woff2');
+      }
+
       * {
         box-sizing: border-box;
       }

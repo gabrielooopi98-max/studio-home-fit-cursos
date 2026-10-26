@@ -8,6 +8,7 @@ import { SITE } from '../dados/site'
 import { getCurriculum } from '../dados/aulas'
 import { friendlyError, toCourse, toLesson, toSettings } from './formatos'
 import { courseDuration } from './duracao'
+import { otimizarImagem } from './imagem'
 import { VIDEO_BUCKET, storedPath, toEmbedUrl, toStoredRef, videoFileInfo, videoObjectPath } from './video'
 
 export { friendlyError }
@@ -106,11 +107,16 @@ const hasAuthState = () => {
   }
 }
 
-// Leitura pública direto na API (sem a biblioteca): usada pelo catálogo da página inicial
+/*
+  Leitura pública direto na API (sem a biblioteca): usada pelo catálogo da página inicial.
+  A chave pública vai no endereço, e não num cabeçalho próprio: assim o navegador não precisa
+  fazer antes a pergunta de permissão (CORS "preflight") e o pedido sai direto, uma ida a menos.
+*/
 const rest = async (path) => {
   let res
   try {
-    res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: { apikey: SUPABASE_KEY, Accept: 'application/json' } })
+    const url = `${SUPABASE_URL}/rest/v1/${path}${path.includes('?') ? '&' : '?'}apikey=${encodeURIComponent(SUPABASE_KEY)}`
+    res = await fetch(url, { headers: { Accept: 'application/json' } })
   } catch (e) {
     fail(e)
   }
@@ -381,12 +387,17 @@ const supabaseBackend = {
       const sb = await client()
       await Promise.all(items.map(({ id, position }) => must(sb.from('lessons').update({ position }).eq('id', id))))
     },
-    async uploadImage(file) {
-      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) fail(new Error('Use uma imagem JPG, PNG ou WebP.'))
-      if (file.size > 5 * 1024 * 1024) fail(new Error('A imagem precisa ter no máximo 5 MB.'))
+    // Capa do curso: a foto é reduzida e compactada no navegador antes de subir (ver servicos/imagem.js)
+    async uploadImage(original) {
+      if (!/^image\/(jpeg|png|webp)$/.test(original.type)) fail(new Error('Use uma imagem JPG, PNG ou WebP.'))
+      if (original.size > 25 * 1024 * 1024) fail(new Error('A imagem precisa ter no máximo 25 MB.'))
+      const file = await otimizarImagem(original)
+      if (file.size > 5 * 1024 * 1024) fail(new Error('Não foi possível reduzir a imagem para menos de 5 MB. Tente outra foto.'))
       const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[file.type]
       const path = `cursos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-      await must((await client()).storage.from('course-images').upload(path, file, { contentType: file.type, upsert: false }))
+      await must(
+        (await client()).storage.from('course-images').upload(path, file, { contentType: file.type, upsert: false, cacheControl: '31536000' }),
+      )
       return (await client()).storage.from('course-images').getPublicUrl(path).data.publicUrl
     },
     // Envia o arquivo de vídeo da aula (em partes, com progresso) e devolve a referência para salvar na aula

@@ -3,6 +3,7 @@
 import { COURSES, PLANS } from '../dados/conteudo'
 import { getCurriculum } from '../dados/aulas'
 import { friendlyError, toCourse, toSettings } from './formatos'
+import { otimizarImagem } from './imagem'
 import { storedPath, toEmbedUrl, toStoredRef, videoFileInfo, videoObjectPath } from './video'
 
 export { friendlyError }
@@ -413,8 +414,11 @@ export const backend = {
     async setLessonPositions(items) {
       items.forEach(({ id, position }) => Object.assign(db.lessons.find((l) => l.id === id), { position }))
     },
-    async uploadImage(file) {
-      if (!/^image\/(jpeg|png|webp)$/.test(file.type)) err('Use uma imagem JPG, PNG ou WebP.')
+    async uploadImage(original) {
+      if (!/^image\/(jpeg|png|webp)$/.test(original.type)) err('Use uma imagem JPG, PNG ou WebP.')
+      const file = await otimizarImagem(original)
+      // para os testes automáticos conferirem a redução
+      window.__ultimaCapa = { antes: original.size, depois: file.size, tipo: file.type }
       return URL.createObjectURL(file)
     },
     // envio simulado em 20 partes, com progresso e cancelamento

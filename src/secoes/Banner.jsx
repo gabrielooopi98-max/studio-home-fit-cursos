@@ -2,7 +2,10 @@
 import Icone from '../componentes/Icone'
 import Logo from '../componentes/Logo'
 import dupla from '../imagens/dupla-homefit.webp'
+import dupla480 from '../imagens/dupla-homefit-480.webp'
+import dupla720 from '../imagens/dupla-homefit-720.webp'
 import fachada from '../imagens/banner-academia.webp'
+import fachada960 from '../imagens/banner-academia-960.webp'
 
 // Atraso de entrada de cada bloco (em segundos)
 const delay = (d) => ({ '--d': `${d}s` })
@@ -16,8 +19,20 @@ const DECOR = ['x', 'squares', 'x-left', 'dots-left']
 export default function Banner() {
   return (
     <section className="hero" id="inicio">
-      {/* Fundo: a fachada do Studio em preto e branco, no banner inteiro */}
-      <img className="hero__bg" src={fachada} alt="" aria-hidden="true" width="1448" height="1086" />
+      {/*
+        Fundo: a fachada do Studio em preto e branco, no banner inteiro. No celular e no tablet ela
+        fica escurecida e quase toda atrás da dupla, então a versão de 960px basta.
+      */}
+      <img
+        className="hero__bg"
+        src={fachada}
+        srcSet={`${fachada960} 960w, ${fachada} 1448w`}
+        sizes="(max-width: 980px) 540px, 100vw"
+        alt=""
+        aria-hidden="true"
+        width="1448"
+        height="1086"
+      />
 
       {/* Painel branco na diagonal (pincel seco) onde fica o texto */}
       <span className="hero__panel" aria-hidden="true" />
@@ -38,9 +53,12 @@ export default function Banner() {
 
       {/* Dupla de professores cruzando a borda do painel */}
       <div className="hero__visual">
+        {/* o navegador baixa só o tamanho de que precisa: celular ~360px, tablet 560px, computador ~800px */}
         <img
           className="hero__duo"
           src={dupla}
+          srcSet={`${dupla480} 480w, ${dupla720} 720w, ${dupla} 960w`}
+          sizes="(max-width: 640px) 92vw, (max-width: 980px) 560px, 802px"
           alt="Professores do Studio HomeFit de braços cruzados, com a camiseta da marca"
           width="960"
           height="970"
