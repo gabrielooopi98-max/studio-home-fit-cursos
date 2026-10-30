@@ -7,7 +7,7 @@
   }
 
   .co {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .stepper__item:not(:last-child)::after {
@@ -57,7 +57,17 @@
     flex-direction: column-reverse;
   }
 
+  /* empilhados: largura toda e altura de verdade (o flex: 1 do computador achatava o botão) */
+  .co__actions .btn {
+    flex: none;
+    width: 100%;
+  }
+
   .co__pay-btn {
+    height: auto;
+    min-height: var(--h);
+    padding: 12px 18px;
+    line-height: 1.25;
     white-space: normal;
     text-align: center;
   }

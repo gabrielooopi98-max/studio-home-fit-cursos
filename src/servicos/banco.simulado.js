@@ -34,6 +34,7 @@ let settings = {
   instagram: '',
   youtube: '',
   contact_email: 'contato@studiohomefit.com.br',
+  trainers: null,
 }
 
 COURSES.forEach((c, i) => {
@@ -557,7 +558,7 @@ export const backend = {
         combo_title: s.comboTitle, combo_description: s.comboDescription, combo_price: s.comboPrice, combo_old_price: s.comboOldPrice,
         combo_installments: s.comboInstallments, combo_active: s.comboActive, combo_features: s.comboFeatures, test_mode: s.testMode,
         drip_enabled: s.dripEnabled, drip_days: s.dripDays,
-        whatsapp: s.whatsapp, instagram: s.instagram, youtube: s.youtube, contact_email: s.contactEmail,
+        whatsapp: s.whatsapp, instagram: s.instagram, youtube: s.youtube, contact_email: s.contactEmail, trainers: s.trainers,
       }
       return toSettings(settings)
     },

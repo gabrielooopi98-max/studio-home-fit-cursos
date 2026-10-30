@@ -359,6 +359,16 @@ function PriceTab({ draft, setDraft, errors }) {
 /* =========================================================
    Aba Aulas: módulos e aulas, salvando cada alteração
    ========================================================= */
+// de onde é o link do vídeo (aparece em cima do link, na aula)
+const videoSource = (url) => {
+  const u = String(url ?? '')
+  if (/youtube(-nocookie)?\.com|youtu\.be/i.test(u)) return 'YouTube'
+  if (/vimeo\.com/i.test(u)) return 'Vimeo'
+  if (/pandavideo/i.test(u)) return 'Panda Video'
+  if (/mediadelivery\.net|b-cdn\.net|bunny/i.test(u)) return 'Bunny Stream'
+  return 'Link de vídeo'
+}
+
 function VideoPreview({ url, onClose }) {
   const src = toEmbedUrl(url)
   return (
@@ -480,10 +490,8 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
     }
   }
 
-  const sendFile = async (e) => {
-    const file = e.target.files?.[0]
-    e.target.value = ''
-    if (!file) return
+  const sendFile = async (file) => {
+    if (!file || upload) return
     const info = videoFileInfo(file)
     if (info.error) {
       notify(info.error, 'error')
@@ -535,90 +543,165 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
   const stored = isStoredVideo(video)
   const videoOk = !!video.trim() && (stored || isValidVideoUrl(toEmbedUrl(video)))
   const videoBad = !!video.trim() && !videoOk
+  // a aula já tem um link salvo (o campo vazio continua sendo o mesmo enquanto a pessoa digita)
+  const hasLink = !stored && !!lesson.videoUrl
+  const pick = () => fileRef.current?.click()
+
+  // arrastar o arquivo do vídeo para cima da aula envia (vale para trocar também)
+  const [over, setOver] = useState(false)
+  const dropProps = upload
+    ? {}
+    : {
+        onDragOver: (e) => {
+          if (![...e.dataTransfer.types].includes('Files')) return
+          e.preventDefault()
+          setOver(true)
+        },
+        onDragLeave: (e) => !e.currentTarget.contains(e.relatedTarget) && setOver(false),
+        onDrop: (e) => {
+          e.preventDefault()
+          setOver(false)
+          sendFile(e.dataTransfer.files?.[0])
+        },
+      }
 
   return (
-    <li className="lrow">
-      <span className="lrow__num">{index + 1}</span>
-      <div className="lrow__fields">
+    <li className={`lrow ${stored || (hasLink && videoOk) ? 'has-video' : ''}`}>
+      <div className="lrow__top">
+        <span className="lrow__num" title={stored || hasLink ? 'Aula com vídeo' : 'Aula sem vídeo'}>
+          {index + 1}
+        </span>
         <input
           className="lrow__title"
           value={title}
           maxLength={160}
+          placeholder="Título da aula"
           onChange={(e) => setTitle(e.target.value)}
           onBlur={() => commit()}
           aria-label={`Título da aula ${index + 1}`}
         />
-        <input
-          className={`lrow__duration ${durationBad ? 'is-bad' : ''} ${autoDuration ? 'is-auto' : ''}`}
-          value={duration}
-          maxLength={12}
-          placeholder="Duração"
+        <label
+          className={`lrow__dur ${durationBad ? 'is-bad' : ''} ${autoDuration ? 'is-auto' : ''}`}
           title={autoDuration ? 'Duração lida do arquivo de vídeo (dá para editar)' : 'Ex.: 12:30, 1:05:00, 45min ou 1h20'}
-          onChange={(e) => {
-            setDuration(e.target.value)
-            setAutoDuration(false)
-          }}
-          onBlur={() => commit()}
-          aria-label="Duração"
-        />
-        <input type="file" ref={fileRef} accept={VIDEO_ACCEPT} onChange={sendFile} hidden />
-        {upload ? (
-          <UploadProgress upload={upload} onCancel={() => abortRef.current?.abort()} />
-        ) : stored ? (
-          <div className="lrow__video lrow__video--file is-ok">
-            <Icone name="checkCircle" size={16} />
-            <span className="lrow__file" title={storedName(video)}>
-              <strong>{storedName(video)}</strong>
-              <small>Arquivo enviado</small>
-            </span>
-            <button type="button" onClick={() => onPreview(video)} title="Assistir o vídeo">
-              <Icone name="play" size={12} /> Assistir
-            </button>
-            <button type="button" onClick={() => fileRef.current?.click()} title="Enviar outro arquivo no lugar">
-              <Icone name="refresh" size={12} /> Trocar
-            </button>
-            <button type="button" className="is-danger" onClick={() => setAskRemove(true)} aria-label="Remover o vídeo da aula">
-              <Icone name="trash" size={13} />
-            </button>
-          </div>
-        ) : (
-          <div className={`lrow__video ${videoOk ? 'is-ok' : videoBad ? 'is-bad' : ''}`}>
-            <Icone name={videoOk ? 'checkCircle' : 'video'} size={16} />
-            <input
-              value={video}
-              maxLength={1000}
-              placeholder="Cole o link do vídeo"
-              title="YouTube, Vimeo, Panda ou outro link https"
-              onChange={(e) => setVideo(e.target.value)}
-              onBlur={() => commit()}
-              aria-label="Link do vídeo"
-            />
-            {videoOk && (
-              <button type="button" onClick={() => onPreview(video)} title="Testar vídeo">
-                <Icone name="play" size={12} /> Testar
-              </button>
-            )}
-            <button type="button" className="is-primary" onClick={() => fileRef.current?.click()} title="Enviar o arquivo do vídeo (MP4, WebM ou MOV)">
-              <Icone name="upload" size={13} /> Enviar vídeo
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="lrow__side">
+        >
+          <Icone name="clock" size={14} />
+          <input
+            className={`lrow__duration ${durationBad ? 'is-bad' : ''} ${autoDuration ? 'is-auto' : ''}`}
+            value={duration}
+            maxLength={12}
+            placeholder="Duração"
+            onChange={(e) => {
+              setDuration(e.target.value)
+              setAutoDuration(false)
+            }}
+            onBlur={() => commit()}
+            aria-label="Duração"
+          />
+        </label>
         <span className={`lrow__state lrow__state--${state}`} aria-live="polite">
           {state === 'saving' ? 'Salvando…' : state === 'saved' ? 'Salvo' : state === 'error' ? (durationBad ? 'Duração inválida' : videoBad ? 'Link inválido' : 'Erro ao salvar') : ''}
         </span>
-        <div className="order-btns order-btns--row">
-          <button type="button" onClick={() => onMove(-1)} disabled={index === 0} aria-label="Subir aula">
-            <Icone name="chevronUp" size={15} />
+        <div className="lrow__actions">
+          <button type="button" className="xicon-btn" onClick={() => onMove(-1)} disabled={index === 0} aria-label="Subir aula">
+            <Icone name="chevronUp" size={16} />
           </button>
-          <button type="button" onClick={() => onMove(1)} disabled={index === total - 1} aria-label="Descer aula">
-            <Icone name="chevronDown" size={15} />
+          <button type="button" className="xicon-btn" onClick={() => onMove(1)} disabled={index === total - 1} aria-label="Descer aula">
+            <Icone name="chevronDown" size={16} />
+          </button>
+          <button type="button" className="xicon-btn xicon-btn--danger" onClick={onDelete} aria-label={`Excluir aula ${title}`}>
+            <Icone name="trash" size={16} />
           </button>
         </div>
-        <button type="button" className="xicon-btn xicon-btn--danger" onClick={onDelete} aria-label={`Excluir aula ${title}`}>
-          <Icone name="trash" size={16} />
-        </button>
+      </div>
+
+      <div className={`lrow__media ${over ? 'is-over' : ''}`} {...dropProps}>
+        <input
+          type="file"
+          ref={fileRef}
+          accept={VIDEO_ACCEPT}
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            sendFile(file)
+          }}
+          hidden
+        />
+        {upload ? (
+          <UploadProgress upload={upload} onCancel={() => abortRef.current?.abort()} />
+        ) : stored ? (
+          <div className="lrow__video lrow__video--file">
+            <span className="lrow__vicon" aria-hidden="true">
+              <Icone name="video" size={18} />
+            </span>
+            <span className="lrow__file" title={storedName(video)}>
+              <strong>{storedName(video)}</strong>
+              <small>
+                <Icone name="checkCircle" size={12} /> Arquivo enviado{seconds ? ` · ${formatClock(seconds)}` : ''}
+              </small>
+            </span>
+            <div className="lrow__vbtns">
+              <button type="button" onClick={() => onPreview(video)} title="Assistir o vídeo">
+                <Icone name="play" size={12} /> Assistir
+              </button>
+              <button type="button" onClick={pick} title="Enviar outro arquivo no lugar">
+                <Icone name="refresh" size={12} /> Trocar
+              </button>
+              <button type="button" className="is-danger" onClick={() => setAskRemove(true)} aria-label="Remover o vídeo da aula">
+                <Icone name="trash" size={14} />
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className={`lrow__video ${hasLink ? 'lrow__video--link' : 'lrow__video--empty'} ${videoBad ? 'is-bad' : ''}`}>
+            {hasLink ? (
+              <span className="lrow__vicon" aria-hidden="true">
+                <Icone name={videoBad ? 'alert' : 'play'} size={18} />
+              </span>
+            ) : (
+              <button type="button" className="lrow__drop" onClick={pick} title="Enviar o arquivo do vídeo (MP4, WebM ou MOV)">
+                <span className="lrow__vicon" aria-hidden="true">
+                  <Icone name="upload" size={18} />
+                </span>
+                <span className="lrow__droptext">
+                  <strong>{over ? 'Solte para enviar' : 'Enviar vídeo'}</strong>
+                  <small>Arraste o arquivo ou clique · MP4, WebM, MOV</small>
+                </span>
+              </button>
+            )}
+            {!hasLink && (
+              <span className="lrow__or" aria-hidden="true">
+                ou
+              </span>
+            )}
+            <label className="lrow__link">
+              {hasLink && <small>{videoBad ? 'Link inválido' : videoSource(video)}</small>}
+              <input
+                value={video}
+                maxLength={1000}
+                placeholder="Cole o link do YouTube, Vimeo ou Panda"
+                title="YouTube, Vimeo, Panda ou outro link https"
+                onChange={(e) => setVideo(e.target.value)}
+                onBlur={() => commit()}
+                aria-label="Link do vídeo"
+              />
+            </label>
+            {hasLink && (
+              <div className="lrow__vbtns">
+                {videoOk && (
+                  <button type="button" onClick={() => onPreview(video)} title="Testar vídeo">
+                    <Icone name="play" size={12} /> Testar
+                  </button>
+                )}
+                <button type="button" onClick={pick} title="Trocar o link pelo arquivo do vídeo">
+                  <Icone name="upload" size={12} /> Enviar arquivo
+                </button>
+                <button type="button" className="is-danger" onClick={() => commit({ videoUrl: '' })} aria-label="Tirar o link do vídeo">
+                  <Icone name="x" size={14} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <Confirm
         open={askRemove}
@@ -1043,19 +1126,52 @@ function ContentTab({ course, setCourse }) {
 
   const totalLessons = modules.reduce((n, m) => n + m.lessons.length, 0)
   const withVideo = modules.reduce((n, m) => n + m.lessons.filter((l) => l.videoUrl).length, 0)
+  const pct = totalLessons ? Math.round((withVideo / totalLessons) * 100) : 0
+
+  // módulos recolhidos (só nesta tela, para achar mais rápido o que precisa editar)
+  const [closed, setClosed] = useState(() => new Set())
+  const toggle = (id) =>
+    setClosed((s) => {
+      const next = new Set(s)
+      if (!next.delete(id)) next.add(id)
+      return next
+    })
+  const allClosed = modules.length > 0 && modules.every((m) => closed.has(m.id))
 
   return (
     <>
       <div className="content-head">
-        <p>
-          <strong>{modules.length}</strong> módulos · <strong>{totalLessons}</strong> aulas ·{' '}
-          <strong>{withVideo}</strong> com vídeo · carga horária <strong>{courseDuration(modules).label || 'sem durações'}</strong>
-          {totalLessons > withVideo && <span className="content-head__warn"> ({totalLessons - withVideo} sem vídeo aparecem como "em breve")</span>}
-        </p>
-        <p className="content-head__tip">
-          <Icone name="checkCircle" size={15} /> Tudo é salvo sozinho. Use <strong>Enviar vídeo</strong> para subir o arquivo ou cole um
-          link do YouTube, Vimeo ou Panda.
-        </p>
+        <dl className="cstats">
+          <div>
+            <dt>Módulos</dt>
+            <dd>{modules.length}</dd>
+          </div>
+          <div>
+            <dt>Aulas</dt>
+            <dd>{totalLessons}</dd>
+          </div>
+          <div className={`cstats__video ${totalLessons && withVideo === totalLessons ? 'is-done' : ''}`}>
+            <dt>Com vídeo</dt>
+            <dd>
+              {withVideo}
+              <small>/{totalLessons}</small>
+            </dd>
+            <span className="cstats__bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Aulas com vídeo">
+              <i style={{ width: `${pct}%` }} />
+            </span>
+          </div>
+          <div>
+            <dt>Carga horária</dt>
+            <dd>{courseDuration(modules).label || '—'}</dd>
+          </div>
+        </dl>
+        {modules.length > 1 && (
+          <div className="content-head__bar">
+            <button type="button" className="btn btn--outline btn--sm" onClick={() => setClosed(allClosed ? new Set() : new Set(modules.map((m) => m.id)))}>
+              <Icone name={allClosed ? 'chevronDown' : 'chevronUp'} size={16} /> {allClosed ? 'Abrir todos' : 'Recolher todos'}
+            </button>
+          </div>
+        )}
       </div>
 
       <IntroVideo course={course} setCourse={setCourse} onPreview={openPreview} />
@@ -1076,64 +1192,99 @@ function ContentTab({ course, setCourse }) {
       )}
 
       <ol className="modules">
-        {modules.map((mod, i) => (
-          <li key={mod.id} className="module">
-            <header className="module__head">
-              <span className="module__num">Módulo {i + 1}</span>
-              <input
-                className="module__title"
-                defaultValue={mod.title}
-                maxLength={160}
-                onBlur={(e) => renameModule(mod, e.target.value)}
-                aria-label={`Nome do módulo ${i + 1}`}
-              />
-              <span className="module__count">{mod.lessons.length} aulas</span>
-              <div className="order-btns order-btns--row">
-                <button type="button" onClick={() => moveModule(i, -1)} disabled={i === 0} aria-label="Subir módulo">
-                  <Icone name="chevronUp" size={15} />
+        {modules.map((mod, i) => {
+          const open = !closed.has(mod.id)
+          const done = mod.lessons.filter((l) => l.videoUrl).length
+          const time = courseDuration([mod]).label
+          return (
+            <li key={mod.id} className={`module ${open ? '' : 'is-closed'}`}>
+              <header className="module__head">
+                <button
+                  type="button"
+                  className="module__toggle"
+                  onClick={() => toggle(mod.id)}
+                  aria-expanded={open}
+                  aria-label={open ? `Recolher o módulo ${i + 1}` : `Abrir o módulo ${i + 1}`}
+                >
+                  <Icone name="chevronDown" size={18} />
                 </button>
-                <button type="button" onClick={() => moveModule(i, 1)} disabled={i === modules.length - 1} aria-label="Descer módulo">
-                  <Icone name="chevronDown" size={15} />
+                <span className="module__badge" aria-hidden="true">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div className="module__name">
+                  <span className="module__num">Módulo {i + 1}</span>
+                  <input
+                    className="module__title"
+                    defaultValue={mod.title}
+                    maxLength={160}
+                    placeholder="Nome do módulo"
+                    onBlur={(e) => renameModule(mod, e.target.value)}
+                    aria-label={`Nome do módulo ${i + 1}`}
+                  />
+                </div>
+                <div className="module__meta">
+                  <span className="module__chip">
+                    <Icone name="list" size={13} /> {mod.lessons.length} {mod.lessons.length === 1 ? 'aula' : 'aulas'}
+                  </span>
+                  {time && (
+                    <span className="module__chip">
+                      <Icone name="clock" size={13} /> {time}
+                    </span>
+                  )}
+                  {mod.lessons.length > 0 && (
+                    <span className={`module__chip ${done === mod.lessons.length ? 'is-ok' : 'is-warn'}`}>
+                      <Icone name="video" size={13} /> {done}/{mod.lessons.length} com vídeo
+                    </span>
+                  )}
+                </div>
+                <div className="module__actions">
+                  <button type="button" className="xicon-btn" onClick={() => moveModule(i, -1)} disabled={i === 0} aria-label="Subir módulo">
+                    <Icone name="chevronUp" size={16} />
+                  </button>
+                  <button type="button" className="xicon-btn" onClick={() => moveModule(i, 1)} disabled={i === modules.length - 1} aria-label="Descer módulo">
+                    <Icone name="chevronDown" size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className="xicon-btn xicon-btn--danger"
+                    onClick={() => setConfirm({ kind: 'module', mod })}
+                    aria-label={`Excluir módulo ${mod.title}`}
+                  >
+                    <Icone name="trash" size={16} />
+                  </button>
+                </div>
+              </header>
+
+              {/* recolhido só esconde: um vídeo sendo enviado continua enviando */}
+              {mod.lessons.length > 0 && (
+                <ol className="lessons" hidden={!open}>
+                  {mod.lessons.map((l, li) => (
+                    <LessonRow
+                      key={l.id}
+                      lesson={l}
+                      courseId={course.id}
+                      index={li}
+                      total={mod.lessons.length}
+                      onSave={(next) => saveLesson(mod, next)}
+                      onMove={(dir) => moveLesson(mod, li, dir)}
+                      onDelete={() => setConfirm({ kind: 'lesson', mod, lesson: l })}
+                      onPreview={openPreview}
+                    />
+                  ))}
+                </ol>
+              )}
+
+              <div className="module__foot" hidden={!open}>
+                <button type="button" className="btn module__add" onClick={() => addLesson(mod)}>
+                  <Icone name="plus" size={16} /> Adicionar aula
+                </button>
+                <button type="button" className="btn btn--outline btn--sm" onClick={() => setBulkFor(mod)}>
+                  <Icone name="list" size={16} /> Adicionar várias
                 </button>
               </div>
-              <button
-                type="button"
-                className="xicon-btn xicon-btn--danger"
-                onClick={() => setConfirm({ kind: 'module', mod })}
-                aria-label={`Excluir módulo ${mod.title}`}
-              >
-                <Icone name="trash" size={16} />
-              </button>
-            </header>
-
-            {mod.lessons.length > 0 && (
-              <ol className="lessons">
-                {mod.lessons.map((l, li) => (
-                  <LessonRow
-                    key={l.id}
-                    lesson={l}
-                    courseId={course.id}
-                    index={li}
-                    total={mod.lessons.length}
-                    onSave={(next) => saveLesson(mod, next)}
-                    onMove={(dir) => moveLesson(mod, li, dir)}
-                    onDelete={() => setConfirm({ kind: 'lesson', mod, lesson: l })}
-                    onPreview={openPreview}
-                  />
-                ))}
-              </ol>
-            )}
-
-            <div className="module__foot">
-              <button type="button" className="btn btn--outline btn--sm" onClick={() => addLesson(mod)}>
-                <Icone name="plus" size={16} /> Adicionar aula
-              </button>
-              <button type="button" className="btn btn--outline btn--sm" onClick={() => setBulkFor(mod)}>
-                <Icone name="list" size={16} /> Adicionar várias
-              </button>
-            </div>
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ol>
 
       {modules.length > 0 && (

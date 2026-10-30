@@ -14,6 +14,7 @@ const MIGRACOES = [
   '0004_pagamentos_seguros.sql',
   '0005_protecao_reembolso.sql',
   '0006_apresentacao_do_curso.sql',
+  '0007_professores.sql',
 ]
 const pasta = fileURLToPath(new URL('../../supabase/migrations/', import.meta.url))
 

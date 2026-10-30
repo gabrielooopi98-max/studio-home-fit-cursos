@@ -325,3 +325,8 @@
     font-size: 1.3rem;
   }
 }
+
+/* Carregando as configurações: espaço reservado do tamanho de uma ficha */
+.trainer--skeleton {
+  min-height: 260px;
+}

@@ -1,5 +1,6 @@
 // Formatos e mensagens compartilhados entre o banco real e o banco simulado dos testes
 import { courseDuration } from './duracao'
+import { cleanTrainers } from './professores'
 
 const byPos = (a, b) => (a.position ?? 0) - (b.position ?? 0)
 
@@ -85,4 +86,7 @@ export const toSettings = (row) => ({
   instagram: row.instagram ?? '',
   youtube: row.youtube ?? '',
   contactEmail: row.contact_email ?? '',
+  // professores editáveis no painel (0007_professores.sql); null = os que vêm no código
+  trainersSupported: 'trainers' in row,
+  trainers: cleanTrainers(row.trainers),
 })

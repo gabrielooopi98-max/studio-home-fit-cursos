@@ -221,6 +221,7 @@
 
 .co__coupon {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 18px;
 }

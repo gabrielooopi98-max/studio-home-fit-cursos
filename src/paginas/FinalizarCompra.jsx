@@ -207,7 +207,7 @@ export default function FinalizarCompra({ items, onClose, onComplete, onClearCar
           <div className="co__head">
             <img className="co__logo" src={logoEscura} alt="Studio HomeFit" width="626" height="178" />
             <p className="co__secure">
-              <Icone name="lock" size={14} /> FinalizarCompra seguro
+              <Icone name="lock" size={14} /> Compra segura
             </p>
             <h2>{step === 2 ? 'Pedido confirmado!' : 'Finalizar compra'}</h2>
           </div>
@@ -322,27 +322,25 @@ export default function FinalizarCompra({ items, onClose, onComplete, onClearCar
                     </form>
                   )}
 
-                  <div className="co__notice">
-                    <Icone name="lock" size={20} />
-                    <p>
-                      {demo ? (
-                        <>
-                          <strong>Modo demonstração:</strong> nenhuma cobrança é feita e os cursos ficam liberados neste
-                          navegador.
-                        </>
-                      ) : testMode ? (
-                        <>
-                          <strong>Modo de teste ligado:</strong> a compra é registrada sem cobrança, para testar o site.
-                          Desligue no painel de ADM antes de vender.
-                        </>
-                      ) : (
-                        <>
-                          Você vai para o <strong>ambiente seguro do Mercado Pago</strong> e escolhe lá: Pix (aprovação na
-                          hora) ou cartão em até 12x. Os dados do cartão nunca passam pelo nosso site.
-                        </>
-                      )}
-                    </p>
-                  </div>
+                  {/* aviso só quando não há cobrança de verdade */}
+                  {(demo || testMode) && (
+                    <div className="co__notice">
+                      <Icone name="lock" size={20} />
+                      <p>
+                        {demo ? (
+                          <>
+                            <strong>Modo demonstração:</strong> nenhuma cobrança é feita e os cursos ficam liberados neste
+                            navegador.
+                          </>
+                        ) : (
+                          <>
+                            <strong>Modo de teste ligado:</strong> a compra é registrada sem cobrança, para testar o site.
+                            Desligue no painel de ADM antes de vender.
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
 
                   {payError && (
                     <p className="co__error" role="alert">
@@ -366,8 +364,7 @@ export default function FinalizarCompra({ items, onClose, onComplete, onClearCar
                         </>
                       ) : (
                         <>
-                          <Icone name="lock" size={18} />{' '}
-                          {demo || testMode ? `Concluir compra de ${formatBRL(total)}` : `Pagar ${formatBRL(total)} com segurança`}
+                          <Icone name="lock" size={18} /> Finalizar compra
                         </>
                       )}
                     </button>

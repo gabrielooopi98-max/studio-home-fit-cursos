@@ -59,6 +59,8 @@ const fromSettings = (s) => ({
   contact_email: s.contactEmail,
   // só manda as colunas da liberação gradual se o banco já tiver (rodou o 0005)
   ...(s.dripSupported ? { drip_enabled: s.dripEnabled, drip_days: s.dripDays } : {}),
+  // e a dos professores, se já rodou o 0007
+  ...(s.trainersSupported ? { trainers: s.trainers } : {}),
 })
 
 const fromCourse = (c) => ({

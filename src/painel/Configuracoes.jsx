@@ -1,8 +1,12 @@
-// Painel > Configurações: pagamentos, modo de teste, Combo Completo e contatos do site.
+// Painel > Configurações: pagamentos, modo de teste, Combo Completo, professores e contatos do site.
 import { useState } from 'react'
 import Icone from '../componentes/Icone'
+import { TRAINERS } from '../dados/conteudo'
 import { backend } from '../servicos/banco'
+import { cleanTrainers, trainerErrors } from '../servicos/professores'
+import EditorDeProfessores from './EditorDeProfessores'
 import PrecoEDesconto from './PrecoEDesconto'
+import { withKey } from './formatos'
 import { fromPricing, pricingErrors, toPricing } from './precos'
 import { useAdmin, useAsync } from './hooks'
 import { Card, ErrorBox, Field, PageHead, Toggle } from './interface'
@@ -18,6 +22,10 @@ function validate(s) {
   if (s.whatsapp && !/^\d{12,13}$/.test(s.whatsapp)) e.whatsapp = 'Só números, com 55 + DDD (ex.: 5564999258218).'
   for (const k of ['instagram', 'youtube']) if (s[k] && !/^https:\/\/\S+$/.test(s[k])) e[k] = 'Cole o link completo, começando com https://'
   if (s.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s.contactEmail)) e.contactEmail = 'E-mail inválido.'
+  if (s.trainersSupported) {
+    const list = s.trainers.map(trainerErrors)
+    if (!s.trainers.length || list.some((x) => Object.keys(x).length)) e.trainers = { list }
+  }
   return e
 }
 
@@ -26,6 +34,8 @@ const toForm = (settings) => ({
   ...settings,
   featuresText: settings.comboFeatures.join('\n'),
   comboPricing: toPricing(settings.comboPrice, settings.comboOldPrice),
+  // nada salvo ainda: começa com os professores que o site mostra hoje
+  trainers: (settings.trainers ?? TRAINERS).map((t) => withKey({ ...t, specialties: [...t.specialties] })),
 })
 
 function SettingsForm({ initial }) {
@@ -65,6 +75,7 @@ function SettingsForm({ initial }) {
         instagram: s.instagram.trim(),
         youtube: s.youtube.trim(),
         contactEmail: s.contactEmail.trim(),
+        trainers: cleanTrainers(s.trainers),
       })
       const next = toForm(result)
       setS(next)
@@ -221,6 +232,14 @@ function SettingsForm({ initial }) {
         </div>
       </Card>
 
+      <EditorDeProfessores
+        supported={s.trainersSupported}
+        trainers={s.trainers}
+        onChange={(trainers) => setS((x) => ({ ...x, trainers }))}
+        errors={errors.trainers}
+        show={touched}
+      />
+
       <Card title="Contatos e redes" subtitle="Aparecem no rodapé, no botão de WhatsApp e no menu. Em branco = escondido.">
         <div className="xform">
           <div className="xform__row">
@@ -270,7 +289,7 @@ export default function Configuracoes() {
   const res = useAsync(() => backend.admin.getSettings(), [])
   return (
     <>
-      <PageHead title="Configurações" subtitle="Pagamentos, combo e contatos do site." />
+      <PageHead title="Configurações" subtitle="Pagamentos, combo, professores e contatos do site." />
       <ErrorBox error={res.error} onRetry={res.reload} />
       {res.data ? <SettingsForm initial={res.data} /> : !res.error && <div className="xtable-skeleton xtable-skeleton--tall" />}
     </>

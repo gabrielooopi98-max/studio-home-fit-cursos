@@ -3,7 +3,8 @@
    ========================================================= */
 .co {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
+  /* minmax(0, ...): as colunas podem ficar mais estreitas que o conteúdo (celulares pequenos) */
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
 }
 
 .co__main {
@@ -98,6 +99,7 @@
 .co__form,
 .co__pay {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   animation: stepIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

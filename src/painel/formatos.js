@@ -75,3 +75,7 @@ export const slugTyping = (s) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+/, '')
     .slice(0, 80)
+
+// Item de lista editável com uma chave própria (para o React não confundir os itens ao reordenar)
+let nextKey = 0
+export const withKey = (item) => ({ ...item, key: `k${nextKey++}` })

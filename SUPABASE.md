@@ -29,6 +29,7 @@ No Supabase: **SQL Editor > New query**.
 5. Nova query: cole `supabase/migrations/0005_protecao_reembolso.sql` (liberação gradual das aulas e registro das aulas
    abertas) e **Run**.
 6. Nova query: cole `supabase/migrations/0006_apresentacao_do_curso.sql` (vídeo de apresentação de cada curso) e **Run**.
+7. Nova query: cole `supabase/migrations/0007_professores.sql` (cards dos professores editáveis em **Painel > Configurações**) e **Run**.
 
 Os arquivos podem ser rodados de novo sem duplicar nada. **Sempre na ordem**: se rodar um arquivo de novo, rode também
 todos os que vêm depois dele (cada um substitui algumas regras dos anteriores).
@@ -254,6 +255,7 @@ Arquivos do servidor:
 - `supabase/migrations/0004_pagamentos_seguros.sql`: regras de pagamento, registro de eventos e conferência.
 - `supabase/migrations/0005_protecao_reembolso.sql`: liberação gradual das aulas e registro das aulas abertas.
 - `supabase/migrations/0006_apresentacao_do_curso.sql`: vídeo de apresentação de cada curso, aberto para todos.
+- `supabase/migrations/0007_professores.sql`: cards dos professores editáveis no painel.
 - `supabase/functions/criar-pagamento`: cria o pedido e o pagamento.
 - `supabase/functions/webhook-mercadopago`: confirma pagamentos, estornos e chargebacks.
 - `supabase/functions/conferir-pagamento`: confere pedidos direto no Mercado Pago (volta do aluno, painel e rotina).

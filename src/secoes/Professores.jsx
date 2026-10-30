@@ -4,6 +4,8 @@ import dupla from '../imagens/dupla-homefit.webp'
 import fachada from '../imagens/banner-academia.webp'
 import logoBranca from '../imagens/logo-homefit-branca.svg'
 import { TRAINERS } from '../dados/conteudo'
+import { useStore } from '../estado/hooks'
+import { isInstagramUrl } from '../servicos/professores'
 
 // Credenciais da equipe, em lista simples abaixo dos perfis
 const TRUST = [
@@ -12,33 +14,46 @@ const TRUST = [
   { title: 'Na academia todo dia', text: 'Corrigindo a execução de alunos reais' },
 ]
 
-// Ficha do professor: texto direto, sem foto de perfil (a foto real da dupla fica ao lado)
-function TrainerCard({ trainer, delay }) {
+// Ficha do professor: texto direto, sem foto de perfil (a foto real da dupla fica ao lado).
+// preview: a mesma ficha na prévia do painel (sem a animação de entrada)
+export function TrainerCard({ trainer, delay, preview }) {
+  const instagram = isInstagramUrl(trainer.instagram)
   return (
-    <article className="trainer reveal" style={{ '--d': delay }}>
+    <article className={`trainer ${preview ? 'trainer--preview' : 'reveal'}`} style={delay ? { '--d': delay } : undefined}>
       <h3 className="trainer__name">{trainer.name}</h3>
-      <p className="trainer__meta">
-        {trainer.role} · <span>{trainer.cref}</span>
-      </p>
+      {(trainer.role || trainer.cref) && (
+        <p className="trainer__meta">
+          {trainer.role}
+          {trainer.role && trainer.cref && ' · '}
+          {trainer.cref && <span>{trainer.cref}</span>}
+        </p>
+      )}
 
       <p className="trainer__bio">{trainer.bio}</p>
 
-      <div className="trainer__foot">
-        <p className="trainer__spec">
-          <strong>Especialidades</strong>
-          {trainer.specialties.join(' · ')}
-        </p>
-        {trainer.instagram && (
-          <a className="trainer__social" href={trainer.instagram} target="_blank" rel="noreferrer">
-            <Icone name="instagram" size={16} /> Instagram
-          </a>
-        )}
-      </div>
+      {(trainer.specialties.length > 0 || instagram) && (
+        <div className="trainer__foot">
+          {trainer.specialties.length > 0 && (
+            <p className="trainer__spec">
+              <strong>Especialidades</strong>
+              {trainer.specialties.join(' · ')}
+            </p>
+          )}
+          {instagram && (
+            <a className="trainer__social" href={trainer.instagram} target="_blank" rel="noreferrer">
+              <Icone name="instagram" size={16} /> Instagram
+            </a>
+          )}
+        </div>
+      )}
     </article>
   )
 }
 
 export default function Professores() {
+  // professores editados no painel; sem nada salvo (ou se o banco falhar), os que vêm no código
+  const { status, settings } = useStore()
+  const trainers = status === 'loading' ? null : (settings?.trainers ?? TRAINERS)
   return (
     <section className="section method team" id="professores">
       <div className="container">
@@ -75,9 +90,11 @@ export default function Professores() {
           </figure>
 
           <div className="team__people">
-            {TRAINERS.map((t, i) => (
-              <TrainerCard key={t.name} trainer={t} delay={`${i * 90}ms`} />
-            ))}
+            {trainers ? (
+              trainers.map((t, i) => <TrainerCard key={`${i}-${t.name}`} trainer={t} delay={`${i * 90}ms`} />)
+            ) : (
+              <div className="trainer trainer--skeleton" aria-hidden="true" />
+            )}
 
             <ul className="team__trust reveal" style={{ '--d': '180ms' }}>
               {TRUST.map((t) => (
