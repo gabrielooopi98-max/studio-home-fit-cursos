@@ -376,10 +376,6 @@ const supabaseBackend = {
       if (before && before !== videoUrl) await removeStoredVideos([before])
       return toLesson({ ...lesson, lesson_media: videoUrl ? { video_url: videoUrl } : null })
     },
-    async addLessons(moduleId, titles, startPosition) {
-      const rows = titles.map((title, i) => ({ module_id: moduleId, course_id: null, title, position: startPosition + i }))
-      return (await must((await client()).from('lessons').insert(rows).select('*'))).map(toLesson)
-    },
     async deleteLesson(id) {
       const media = await must((await client()).from('lesson_media').select('video_url').eq('lesson_id', id))
       await must((await client()).from('lessons').delete().eq('id', id))

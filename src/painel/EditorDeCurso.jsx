@@ -716,39 +716,6 @@ function LessonRow({ lesson, courseId, index, total, onSave, onMove, onDelete, o
   )
 }
 
-function BulkAdd({ onAdd, onClose }) {
-  const [text, setText] = useState('')
-  const titles = text
-    .split('\n')
-    .map((t) => t.trim().slice(0, 160))
-    .filter(Boolean)
-  return (
-    <div className="xmodal" role="presentation">
-      <div className="xmodal__overlay" onClick={onClose} />
-      <div className="xmodal__panel" role="dialog" aria-modal="true" aria-labelledby="bulk-title">
-        <h2 id="bulk-title">Adicionar várias aulas</h2>
-        <p className="xmodal__text">Um título por linha. Os vídeos você coloca depois, em cada aula.</p>
-        <textarea
-          className="bulk-text"
-          rows={8}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={'Boas-vindas\nAquecimento\nExecução passo a passo'}
-          autoFocus
-        />
-        <div className="xmodal__actions">
-          <button type="button" className="btn btn--outline" onClick={onClose}>
-            Cancelar
-          </button>
-          <button type="button" className="btn btn--primary" disabled={!titles.length || titles.length > 100} onClick={() => onAdd(titles)}>
-            Adicionar {titles.length || ''} {titles.length === 1 ? 'aula' : 'aulas'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /*
   Apresentação do curso (opcional): um vídeo enviado como arquivo, aberto para todos.
   Fica antes do Módulo 1 na página do curso e na área do aluno. Salva sozinho, como as aulas.
@@ -1006,7 +973,6 @@ function ContentTab({ course, setCourse }) {
   const { notify, refreshSite } = useAdmin()
   const modules = course.curriculum
   const [preview, setPreview] = useState(null)
-  const [bulkFor, setBulkFor] = useState(null)
   const [confirm, setConfirm] = useState(null)
   const [busy, setBusy] = useState(false)
 
@@ -1068,18 +1034,6 @@ function ContentTab({ course, setCourse }) {
         videoUrl: '',
       })
       setModules((ms) => ms.map((m) => (m.id === mod.id ? { ...m, lessons: [...m.lessons, l] } : m)))
-      refreshSite()
-    } catch (e) {
-      fail(e)
-    }
-  }
-
-  const bulkAdd = async (mod, titles) => {
-    try {
-      const added = await backend.admin.addLessons(mod.id, titles, mod.lessons.length + 1)
-      setModules((ms) => ms.map((m) => (m.id === mod.id ? { ...m, lessons: [...m.lessons, ...added] } : m)))
-      setBulkFor(null)
-      notify(`${added.length} aulas adicionadas em "${mod.title}".`)
       refreshSite()
     } catch (e) {
       fail(e)
@@ -1278,9 +1232,6 @@ function ContentTab({ course, setCourse }) {
                 <button type="button" className="btn module__add" onClick={() => addLesson(mod)}>
                   <Icone name="plus" size={16} /> Adicionar aula
                 </button>
-                <button type="button" className="btn btn--outline btn--sm" onClick={() => setBulkFor(mod)}>
-                  <Icone name="list" size={16} /> Adicionar várias
-                </button>
               </div>
             </li>
           )
@@ -1294,7 +1245,6 @@ function ContentTab({ course, setCourse }) {
       )}
 
       {preview && <VideoPreview url={preview} onClose={() => setPreview(null)} />}
-      {bulkFor && <BulkAdd onAdd={(titles) => bulkAdd(bulkFor, titles)} onClose={() => setBulkFor(null)} />}
       <Confirm
         open={!!confirm}
         title={confirm?.kind === 'module' ? `Excluir o módulo "${confirm?.mod.title}"?` : `Excluir a aula "${confirm?.lesson?.title}"?`}

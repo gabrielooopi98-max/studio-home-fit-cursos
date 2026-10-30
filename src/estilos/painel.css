@@ -475,7 +475,6 @@
 .xfield input,
 .xfield select,
 .xfield textarea,
-.bulk-text,
 .grant select {
   width: 100%;
   min-height: 42px;
@@ -500,8 +499,7 @@
   padding-right: 8px;
 }
 
-.xfield textarea,
-.bulk-text {
+.xfield textarea {
   min-height: 0;
   padding: 10px 12px;
   line-height: 1.5;
@@ -513,7 +511,6 @@
 .xfield input:focus,
 .xfield select:focus,
 .xfield textarea:focus,
-.bulk-text:focus,
 .grant select:focus {
   border-color: #1f5bff;
   box-shadow: 0 0 0 3px rgb(31 91 255 / 0.12);
@@ -3122,10 +3119,6 @@
   .intro-preview {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-.bulk-text {
-  font-family: inherit;
 }
 
 /* Configurações */

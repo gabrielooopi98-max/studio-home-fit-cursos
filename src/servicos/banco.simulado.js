@@ -399,14 +399,6 @@ export const backend = {
       if (videoUrl) db.media.push({ lesson_id: l.id, course_id: l.course_id, video_url: videoUrl })
       return { id: l.id, title, duration, position, videoUrl: videoUrl ?? '' }
     },
-    async addLessons(moduleId, titles, start) {
-      const mod = db.modules.find((m) => m.id === moduleId)
-      return titles.map((title, i) => {
-        const l = { id: uid(), module_id: moduleId, course_id: mod.course_id, title, duration: '', position: start + i }
-        db.lessons.push(l)
-        return { id: l.id, title, duration: '', position: l.position, videoUrl: '' }
-      })
-    },
     async deleteLesson(id) {
       db.lessons = db.lessons.filter((l) => l.id !== id)
       db.media.filter((m) => m.lesson_id === id && storedPath(m.video_url)).forEach((m) => files.delete(storedPath(m.video_url)))
