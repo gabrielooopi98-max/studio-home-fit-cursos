@@ -42,7 +42,7 @@ export const toCourse = (row) => {
     .slice()
     .sort(byPos)
     .map((m) => ({ id: m.id, title: m.title, position: m.position, lessons: (m.lessons ?? []).slice().sort(byPos).map(toLesson) }))
-  // carga horária = soma das durações das aulas; sem nenhuma duração ainda, vale a informada à mão
+  // carga horária = soma das durações das aulas (sem nenhuma duração ainda, fica vazia e o site não mostra)
   const duration = courseDuration(curriculum)
   return {
     id: row.id,
@@ -52,8 +52,7 @@ export const toCourse = (row) => {
     level: row.level,
     description: row.description ?? '',
     image: row.image_url ?? '',
-    hours: duration.label || (row.hours ?? ''),
-    manualHours: row.hours ?? '',
+    hours: duration.label,
     duration,
     price: Number(row.price ?? 0),
     oldPrice: row.old_price == null ? null : Number(row.old_price),

@@ -339,7 +339,7 @@ export const backend = {
       await wait()
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(course.slug)) err('Algum valor está fora do permitido. Confira os campos.')
       if (db.courses.some((c) => c.slug === course.slug && c.id !== course.id)) err('Já existe um registro com esse valor (ex.: link do curso ou código do cupom).')
-      const row = { slug: course.slug, title: course.title, tag: course.tag, level: course.level, description: course.description, image_url: course.image, hours: course.manualHours ?? course.hours, price: course.price, old_price: course.oldPrice, bestseller: course.bestseller, published: course.published, position: course.position }
+      const row = { slug: course.slug, title: course.title, tag: course.tag, level: course.level, description: course.description, image_url: course.image, price: course.price, old_price: course.oldPrice, bestseller: course.bestseller, published: course.published, position: course.position }
       let saved
       if (course.id) {
         saved = db.courses.find((c) => c.id === course.id)

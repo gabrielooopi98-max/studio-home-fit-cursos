@@ -138,7 +138,7 @@ export default function PaginaDoCurso({ slug, cartIds, onAdd, onBuyNow }) {
   const owned = library.owns(course.id)
   const inCart = cartIds.includes(course.id)
   const modulos = course.curriculum.filter((m) => m.lessons.length)
-  const horas = courseDuration(course.curriculum).label || course.hours
+  const horas = courseDuration(course.curriculum).label
 
   const comprar = owned ? (
     <a href={`#/meus-cursos/${course.slug}`} className="btn btn--primary btn--block btn--lg">

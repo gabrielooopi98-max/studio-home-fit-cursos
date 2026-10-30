@@ -3357,6 +3357,20 @@
   color: #0f9d58;
 }
 
+/* ainda sem durações: mesmo quadro, em cinza, explicando que vem sozinha */
+.auto-hours--empty {
+  background: #f4f5f7;
+}
+
+.auto-hours--empty strong {
+  color: #6b7079;
+  font-size: 1.15rem;
+}
+
+.auto-hours--empty .auto-hours__hint svg {
+  color: #9a9fa8;
+}
+
 
 .xinput--mid {
   max-width: 260px;

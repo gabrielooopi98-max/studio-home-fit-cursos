@@ -70,7 +70,6 @@ const fromCourse = (c) => ({
   level: c.level,
   description: c.description,
   image_url: c.image,
-  hours: c.manualHours ?? c.hours,
   price: c.price,
   old_price: c.oldPrice,
   bestseller: c.bestseller,
@@ -530,8 +529,7 @@ const staticCourses = COURSES.map((c, i) => {
     curriculum,
     modules: curriculum.map((m) => m.title),
     lessons: curriculum.reduce((n, m) => n + m.lessons.length, 0),
-    hours: courseDuration(curriculum).label || c.hours,
-    manualHours: c.hours,
+    hours: courseDuration(curriculum).label,
   }
 })
 

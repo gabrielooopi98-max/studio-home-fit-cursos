@@ -38,7 +38,6 @@ const NEW_COURSE = {
   level: 'Iniciante',
   description: '',
   image: '',
-  hours: '',
   price: 0,
   oldPrice: null,
   bestseller: false,
@@ -61,7 +60,6 @@ const pickInfo = (c) => ({
   level: c.level,
   description: c.description,
   image: c.image,
-  hours: c.manualHours ?? c.hours ?? '',
   // preço original + % de desconto (o preço final é calculado)
   pricing: c.id ? toPricing(c.price, c.oldPrice) : { base: '', discount: null, final: 0 },
   bestseller: c.bestseller,
@@ -222,30 +220,21 @@ function InfoTab({ draft, setDraft, errors, isNew, duration, savedSlug }) {
             )}
           </Field>
 
-          {duration.seconds > 0 ? (
-            <div className="auto-hours">
-              <span className="auto-hours__label">Carga horária</span>
-              <strong>{duration.label}</strong>
-              <span className="auto-hours__hint">
-                <Icone name="checkCircle" size={14} /> Soma da duração das aulas.
-                {duration.timed < duration.total &&
-                  ` ${duration.total - duration.timed === 1 ? 'Falta 1 aula' : `Faltam ${duration.total - duration.timed} aulas`} sem duração.`}
-              </span>
-            </div>
-          ) : (
-            <Field
-              label="Carga horária"
-              optional
-              about="Tempo total de vídeo. Se deixar vazio, não aparece no site."
-              hint={
-                isNew
-                  ? 'Pode deixar vazio. Depois que você montar as aulas, ela é calculada sozinha.'
-                  : 'Preencha a duração das aulas e ela passa a ser calculada sozinha.'
-              }
-            >
-              {(p) => <input {...p} value={draft.hours} maxLength={20} placeholder="Ex.: 3h20" onChange={set('hours')} className="xinput--short" />}
-            </Field>
-          )}
+          {/* carga horária: sempre calculada pela duração das aulas (não se digita) */}
+          <div className={`auto-hours ${duration.seconds > 0 ? '' : 'auto-hours--empty'}`}>
+            <span className="auto-hours__label">Carga horária</span>
+            <strong>{duration.seconds > 0 ? duration.label : 'Automática'}</strong>
+            <span className="auto-hours__hint">
+              <Icone name={duration.seconds > 0 ? 'checkCircle' : 'clock'} size={14} />{' '}
+              {duration.seconds > 0
+                ? `Soma da duração das aulas.${
+                    duration.timed < duration.total
+                      ? ` ${duration.total - duration.timed === 1 ? 'Falta 1 aula' : `Faltam ${duration.total - duration.timed} aulas`} sem duração.`
+                      : ''
+                  }`
+                : 'Calculada sozinha quando você enviar os vídeos das aulas. Até lá, não aparece no site.'}
+            </span>
+          </div>
         </div>
       </Card>
 
@@ -1305,7 +1294,6 @@ function Editor({ initial, isNew }) {
         slug: slugify(draft.slug),
         tag: draft.tag.trim(),
         description: draft.description.trim(),
-        hours: draft.hours.trim(),
         image: draft.image.trim(),
         ...fromPricing(draft.pricing),
       })
